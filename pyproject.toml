@@ -1,0 +1,64 @@
+[project]
+name = "ragtube"
+version = "0.1.0"
+description = ""
+authors = ["Diego Alberto Garrido Amaya <diego.garrido.6568@gmail.com>"]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "pydantic>=2.9.2",
+  "pydantic-settings>=2.5.2",
+  "fastapi>=0.115.0",
+  "uvicorn[standard]>=0.30.6",
+  "typer>=0.12.5",
+  "sqlmodel>=0.0.22",
+  "pgvector>=0.3.4",
+  "psycopg[binary]>=3.2.2",
+  "streamlit>=1.38.0",
+  "pandas>=2.2.3",
+  "youtube-transcript-api>=0.6.2",
+  "llama-index>=0.11.14",
+  "sentence-transformers>=3.1.1",
+  "langchain>=0.3.1",
+  "langchain-community>=0.3.1",
+  "langchain-ollama>=0.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.11.2",
+  "pyright>=1.1.382",
+  "ruff>=0.6.8",
+  "pre-commit>=3.8.0",
+  "jupyterlab>=4.2.5",
+]
+test = [
+  "pytest>=8.3.3",
+  "coverage>=7.6.1",
+  "pytest-cov>=5.0.0",
+  "debugpy>=1.8.6",
+]
+
+[tool.ruff]
+line-length = 79
+lint.select =[
+  "E", # pycodestyle errors
+  "W", # pycodestyle warnings
+  "F", # pyflakes
+  "I", # isort
+  "C", # flake8-comprehensions
+  "S", # flake8-bandit
+]
+lint.ignore = [
+  "S101", # use assert
+  "E501", # line-too-long, handled by black
+]
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib -s -p no:warnings"
+log_cli = 1
+log_cli_level = "INFO"
+log_cli_format = "[pytest][%(asctime)s][%(levelname)s][%(module)s][%(funcName)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+log_level = "INFO"
+pythonpath = ["."]
