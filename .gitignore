@@ -1,0 +1,50 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+*.egg-info/
+build
+dist
+*.lock
+
+# Pyenv
+.python-version
+
+# Unit test / coverage reports
+.coverage
+coverage.xml
+junit/*
+htmlcov/*
+
+# Caches
+.pytest_cache/
+.ipynb_checkpoints/
+
+# VSCode
+.vscode/
+
+# Idea
+.idea/
+*.iml
+
+# MacOS
+.DS_Store
+
+# local mlflow files
+mlruns/
+
+# Environment variables
+.env
+.env*
+
+# Data
+*.json
+*.crc
+!project.json
+*.csv
+*.parquet
+
+# Drawio
+*.drawio.bkp
