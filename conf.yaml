@@ -1,0 +1,20 @@
+channel_id: UCUyeluBRhGPCW4rPe_UvBZQ
+language: en
+request_timeout: 60
+# request_proxies:
+#   https: https://user:password@ip:port
+chunk_size: 500
+chunk_overlap: 50
+embedding_size: 384
+embedding_model_name: BAAI/bge-small-en-v1.5
+embedding_model_kwargs:
+  device: cuda
+# embedding_encode_kwargs:
+#   ...
+index_hnsm_m: 16
+index_hnsm_ef_construction: 64
+index_hnsm_ef_searh: 40
+results_to_retrieve: 5
+llm_model_name: llama3.1:8b
+llm_temperature: 0.1
+llm_max_tokens: 500
