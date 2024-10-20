@@ -1,0 +1,45 @@
+# Byte-compiled / optimized / DLL files
+# Distribution / packaging
+*.egg-info/
+build
+dist
+*.lock
+
+# Venv
+.venv/
+
+# Pyenv
+.python-version
+
+# Unit test / coverage reports
+.coverage
+coverage.xml
+junit/*
+htmlcov/*
+
+# Caches
+.pytest_cache/
+.ipynb_checkpoints/
+
+# VSCode
+.vscode/
+
+# Idea
+.idea/
+*.iml
+
+# MacOS
+.DS_Store
+
+# local mlflow files
+mlruns/
+
+# Data
+*.json
+*.crc
+!project.json
+*.csv
+*.parquet
+
+# Drawio
+*.drawio.bkp
