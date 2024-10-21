@@ -32,7 +32,7 @@ def create_index(
         postgresql_with={"m": m, "ef_construction": ef_construction},
         postgresql_ops={"embedding": "vector_l2_ops"},
     )
-    index.create(engine)
+    index.create(engine, checkfirst=True)
 
 
 class Retriever(BaseRetriever):
