@@ -15,6 +15,6 @@ def setting_engine() -> Engine:
         settings.db_name.get_secret_value(),
     )
     engine = create_engine(connection)
-    SQLModel.metadata.create_all(engine)
     create_vector_extension(engine)
+    SQLModel.metadata.create_all(engine)
     return engine
