@@ -1,0 +1,122 @@
+version: "3.8"
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: ragtube-db
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+  db-init:
+    image: ragtube:latest
+    build:
+      context: .
+      target: ragtube
+    container_name: ragtube-db-init
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command:
+      - "uv"
+      - "run"
+      - "python"
+      - "-m"
+      - "ragtube.cli"
+  ollama:
+    image: ollama:latest
+    build:
+      context: .
+      target: ollama
+    container_name: ragtube-ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    volumes:
+      - ollama:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:11434"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+  api:
+    image: ragtube:latest
+    build:
+      context: .
+      target: ragtube
+    container_name: ragtube-api
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+      ollama:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command:
+      - "uv"
+      - "run"
+      - "uvicorn"
+      - "ragtube.api:app"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "5000"
+      - "--log-config"
+      - "log_config.yaml"
+    ports:
+      - 5000:5000
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:5000/readiness"]
+      interval: 30s
+      retries: 10
+      start_period: 300s
+      timeout: 10s
+  ui:
+    image: ragtube:latest
+    build:
+      context: .
+      target: ragtube
+    container_name: ragtube-ui
+    depends_on:
+      api:
+        condition: service_healthy
+    command:
+      - "uv"
+      - "run"
+      - "python"
+      - "-m"
+      - "streamlit"
+      - "run"
+      - "ragtube/ui.py"
+    ports:
+      - 8501:8501
+volumes:
+  postgres_data:
+  ollama:
