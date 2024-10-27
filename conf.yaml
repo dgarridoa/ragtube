@@ -1,4 +1,6 @@
-channel_id: UCUyeluBRhGPCW4rPe_UvBZQ
+channel_id:
+  - UCUyeluBRhGPCW4rPe_UvBZQ # ThePrimeTime
+  - UCd3dNckv1Za2coSaHGHl5aA # TJ DeVries
 language: en
 request_timeout: 60
 # request_proxies:
