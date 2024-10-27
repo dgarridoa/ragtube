@@ -1,11 +1,10 @@
 from datetime import datetime
-from unittest.mock import patch
 
-import pytest
 from sqlalchemy.engine import Engine
 from sqlmodel import Session, select
 
 from ragtube.models import Caption, Channel, Video
+from ragtube.settings import Settings
 from ragtube.transcript import (
     VideoTranscriptTask,
     get_channel_videos,
@@ -140,8 +139,12 @@ def videos_captions_with_id() -> list[Caption]:
     return videos_caption_with_id
 
 
-def test_get_channel_videos():
-    actual_videos = get_channel_videos("UC34rhn8Um7R18-BHjPklYlw", timeout=60)
+def test_get_channel_videos(settings: Settings):
+    actual_videos = get_channel_videos(
+        "UC34rhn8Um7R18-BHjPklYlw",
+        settings.youtube_api_key.get_secret_value(),
+        timeout=5,
+    )
     assert actual_videos == videos()
 
 
@@ -152,28 +155,22 @@ def test_get_video_captions():
     assert actual_video_captions == video_captions()
 
 
-@pytest.fixture
-def mock_get_channel_videos():
-    with patch("ragtube.transcript.get_channel_videos") as mock:
-        mock.return_value = videos()
-        yield mock
-
-
-def test_video_transcript_task(
-    engine: Engine,
-    mock_get_channel_videos,
-):
+def test_video_transcript_task(engine: Engine, settings: Settings):
     task = VideoTranscriptTask(
         engine,
         channel_id="UC34rhn8Um7R18-BHjPklYlw",
         language="en",
         timeout=60,
+        api_key=settings.youtube_api_key.get_secret_value(),
     )
 
-    actual_videos = task.get_videos()
+    actual_videos = task.get_videos("UC34rhn8Um7R18-BHjPklYlw")
     assert actual_videos == videos()
 
-    assert task.get_missing_videos(videos()) == videos()
+    assert (
+        task.get_missing_videos("UC34rhn8Um7R18-BHjPklYlw", videos())
+        == videos()
+    )
 
     task.launch()
     with Session(engine) as session:
@@ -188,6 +185,7 @@ def test_video_transcript_task(
         assert videos_captions_from_db == videos_captions_with_id()
 
         videos_from_db = list(session.exec(select(Video)).all())
-        assert task.get_missing_videos(videos_from_db) is None
-
-    assert mock_get_channel_videos.call_count == 2
+        assert (
+            task.get_missing_videos("UC34rhn8Um7R18-BHjPklYlw", videos_from_db)
+            is None
+        )

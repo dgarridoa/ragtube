@@ -16,7 +16,7 @@ app = typer.Typer()
 @app.command()
 def update_index(
     channel_id: Annotated[
-        str | None,
+        list[str] | None,
         typer.Argument(
             help="Channel id, if not set channel_id from conf.yaml will be used"
         ),
@@ -31,12 +31,10 @@ def update_index(
     transcript_task = VideoTranscriptTask(
         engine,
         channel_id or params.channel_id,
+        settings.youtube_api_key.get_secret_value(),
         params.language,
         params.request_timeout,
         params.request_proxies,
-        settings.youtube_api_key.get_secret_value()
-        if settings.youtube_api_key
-        else None,
     )
     chunk_task = ChunkTask(engine, params.chunk_size, params.chunk_overlap)
     embedding_task = EmbeddingTask(

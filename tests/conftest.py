@@ -7,6 +7,8 @@ from sqlalchemy.engine import Engine
 from sqlmodel import Session, SQLModel, create_engine, text
 from sqlmodel.pool import StaticPool
 
+from ragtube.settings import Settings
+
 
 @pytest.fixture(scope="session", autouse=True)
 def mock_embedding_size():
@@ -25,6 +27,11 @@ def mock_get_bge_embedding_model():
         return_value=DeterministicFakeEmbedding(size=2),
     ):
         yield
+
+
+@pytest.fixture(scope="session", autouse=True)
+def settings() -> Settings:
+    return Settings(_env_file=".env-test")  # type: ignore
 
 
 @pytest.fixture

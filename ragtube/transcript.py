@@ -12,37 +12,25 @@ from ragtube.models import Caption, Channel, Video
 from ragtube.utils import timeout_handler
 
 YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3"
-YOUTUBE_NOKEY_API_URL = "https://yt.lemnoslife.com/noKey"
 WATCH_URL = "https://www.youtube.com/watch?v={video_id}"
 
 
 def get_channel_metadata(
     channel_id: str,
+    api_key: str,
     timeout: int = 5,
-    proxies: dict | None = None,
-    api_key: str | None = None,
 ) -> Channel:
-    params = {
-        "part": "snippet",
-        "id": channel_id,
-    }
-    if api_key:
-        url = f"{YOUTUBE_API_URL}/channels"
-        params["key"] = api_key
-    else:
-        url = f"{YOUTUBE_NOKEY_API_URL}/channels"
-    response = requests.get(
-        url, params=params, timeout=timeout, proxies=proxies
-    ).json()
+    params = {"part": "snippet", "id": channel_id, "key": api_key}
+    url = f"{YOUTUBE_API_URL}/channels"
+    response = requests.get(url, params=params, timeout=timeout).json()
     title = response["items"][0]["snippet"]["title"]
     return Channel(id=channel_id, title=title)
 
 
 def get_channel_videos(
     channel_id: str,
+    api_key: str,
     timeout: int = 5,
-    proxies: dict | None = None,
-    api_key: str | None = None,
 ) -> list[Video]:
     # if it has a "Videos" playlist on the main page
     playlist_id = "UULF" + channel_id[2:]
@@ -50,26 +38,17 @@ def get_channel_videos(
         "part": "snippet",
         "playlistId": playlist_id,
         "maxResults": 50,
+        "key": api_key,
     }
-
-    if api_key:
-        url = "https://www.googleapis.com/youtube/v3/playlistItems"
-        params["key"] = api_key
-    else:
-        url = "https://yt.lemnoslife.com/noKey/playlistItems"
-
-    response = requests.get(
-        url, params=params, timeout=timeout, proxies=proxies
-    ).json()
+    url = f"{YOUTUBE_API_URL}/playlistItems"
+    response = requests.get(url, params=params, timeout=timeout).json()
     if "error" in response and response["error"]["status_code"] == 404:
         # if it has not a "Videos" playlist on the main page
         params["playlistId"] = "UU" + channel_id[2:]
 
     videos = []
     while True:
-        response = requests.get(
-            url, params=params, timeout=timeout, proxies=proxies
-        ).json()
+        response = requests.get(url, params=params, timeout=timeout).json()
         if "error" in response:
             raise HTTPError("Unable to get video.", response["error"])
 
@@ -140,11 +119,11 @@ class VideoTranscriptTask:
     def __init__(
         self,
         engine: Engine,
-        channel_id: str,
+        channel_id: str | list[str],
+        api_key: str,
         language: str = "en",
         timeout: int = 60,
         proxies: dict | None = None,
-        api_key: str | None = None,
     ):
         self.engine = engine
         self.channel_id = channel_id
@@ -153,17 +132,21 @@ class VideoTranscriptTask:
         self.proxies = proxies
         self.api_key = api_key
 
-    def get_videos(self) -> list[Video]:
+    def get_videos(self, channel_id: str) -> list[Video]:
         videos = get_channel_videos(
-            self.channel_id, self.timeout, self.proxies, self.api_key
+            channel_id,
+            self.api_key,
+            self.timeout,
         )
-        return list(videos)
+        return videos
 
-    def get_missing_videos(self, videos: list[Video]) -> list[Video] | None:
+    def get_missing_videos(
+        self, channel_id: str, videos: list[Video]
+    ) -> list[Video] | None:
         video_ids = [video.id for video in videos]
         with Session(self.engine) as session:
             statement = select(Video.id).where(
-                col(Video.channel_id) == self.channel_id,
+                col(Video.channel_id) == channel_id,
                 col(Video.id).in_(video_ids),
             )
             video_ids_found = session.exec(statement).all()
@@ -177,10 +160,8 @@ class VideoTranscriptTask:
                 missing_videos.append(video)
         return missing_videos
 
-    def add_channel(self):
-        channel = get_channel_metadata(
-            self.channel_id, self.timeout, self.proxies, self.api_key
-        )
+    def add_channel(self, channel_id: str):
+        channel = get_channel_metadata(channel_id, self.api_key, self.timeout)
         with Session(self.engine) as session:
             channel_from_db = session.get(Channel, channel.id)
             if not channel_from_db:
@@ -203,12 +184,17 @@ class VideoTranscriptTask:
                     session.add(video)
             session.commit()
 
-    def launch(self):
-        self.add_channel()
-
-        videos = self.get_videos()
-        missing_videos = self.get_missing_videos(videos)
+    def add_channel_videos_and_captions(self, channel_id: str):
+        self.add_channel(channel_id)
+        videos = self.get_videos(channel_id)
+        missing_videos = self.get_missing_videos(channel_id, videos)
         if not missing_videos:
             return None
-
         self.add_videos_and_captions(missing_videos)
+
+    def launch(self):
+        if isinstance(self.channel_id, str):
+            self.add_channel_videos_and_captions(self.channel_id)
+        elif isinstance(self.channel_id, list):
+            for channel_id in self.channel_id:
+                self.add_channel_videos_and_captions(channel_id)

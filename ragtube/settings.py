@@ -9,7 +9,7 @@ class Settings(BaseSettings):
         env_file=".env", env_file_encoding="utf-8"
     )
 
-    youtube_api_key: SecretStr | None = None
+    youtube_api_key: SecretStr
     db_user: SecretStr
     db_password: SecretStr
     db_host: SecretStr

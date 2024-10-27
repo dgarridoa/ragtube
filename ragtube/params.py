@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 
 class Params(BaseModel):
-    channel_id: str
+    channel_id: str | list[str]
     language: str = "en"
     request_timeout: int = 60
     request_proxies: dict | None = None
