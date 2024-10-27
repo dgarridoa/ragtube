@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from sqlalchemy.engine import Engine
 from sqlmodel import SQLModel, create_engine
 
@@ -5,6 +7,7 @@ from ragtube.retriever import create_vector_extension
 from ragtube.settings import get_settings
 
 
+@lru_cache
 def setting_engine() -> Engine:
     settings = get_settings()
     connection = "postgresql+psycopg://{}:{}@{}:{}/{}".format(
