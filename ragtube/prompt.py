@@ -2,8 +2,8 @@ from langchain.prompts import PromptTemplate
 
 
 def get_prompt() -> PromptTemplate:
-    TEMPLATE = """You will be asked questions about a YouTuber named ThePrimeagen. His content is related to software engineering.
-    I will provide you with transcriptions from his videos to use as context to answer the question at the end.
+    TEMPLATE = """You will be asked questions about a YouTuber content creators.
+    I will provide you with transcriptions from their videos to use as context to answer the question at the end.
 
     <context>
     {context}
