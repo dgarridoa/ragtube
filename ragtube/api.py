@@ -1,6 +1,5 @@
 import logging
 import secrets
-from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Annotated
 
@@ -8,14 +7,11 @@ import requests
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, Field
+from sqlmodel import Session, select
 
-from ragtube.chat import get_ollama_model
 from ragtube.database import setting_engine
-from ragtube.embedding import get_bge_embedding_model
-from ragtube.params import get_params
-from ragtube.prompt import get_prompt
-from ragtube.rag import create_rag_chain
-from ragtube.retriever import Retriever
+from ragtube.models import Channel
+from ragtube.rag import get_rag_chain
 from ragtube.settings import get_settings
 
 
@@ -80,35 +76,14 @@ class RAGError(BaseModel):
     response: dict = {}
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    params = get_params()
-    chat_model = get_ollama_model(
-        params.chat_model_name, params.chat_temperature, params.chat_max_tokens
-    )
-    embedding_model = get_bge_embedding_model(
-        params.embedding_model_name,
-        params.embedding_model_kwargs,
-        params.embedding_encode_kwargs,
-    )
-    retriever = Retriever(
-        engine=setting_engine(),
-        embedding_model=embedding_model,
-        results_to_retrieve=params.results_to_retrieve,
-    )
-    prompt = get_prompt()
-    app.state.rag_chain = create_rag_chain(chat_model, retriever, prompt)
-    yield
-
-
-settings = get_settings()
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 security = HTTPBasic()
 
 
 def get_current_username(
     credentials: Annotated[HTTPBasicCredentials, Depends(security)],
 ):
+    settings = get_settings()
     username = settings.api_user.get_secret_value()
     password = settings.api_password.get_secret_value()
 
@@ -141,12 +116,22 @@ async def readiness():
     return {"status": "ok"}
 
 
+@app.get("/channel")
+async def channel() -> list[Channel]:
+    engine = setting_engine()
+    with Session(engine) as session:
+        return list(session.exec(select(Channel)).all())
+
+
 @app.post("/rag")
 async def rag(
+    *,
     input: str,
+    channel_id: str | None = None,
     username: Annotated[str, Depends(get_current_username)],
 ) -> RAGOutput:
-    response = app.state.rag_chain.invoke({"input": input})
+    rag_chain = get_rag_chain(channel_id)
+    response = rag_chain.invoke({"input": input})
     output = RAGOutput(
         answer=response["answer"],
         context=[
@@ -164,7 +149,7 @@ async def rag(
 
 
 def get_rag_response(
-    url: str, api_username: str, api_password: str, content: str
+    url: str, api_username: str, api_password: str, params: dict
 ) -> RAGOutput | RAGError:
     try:
         response = requests.post(
@@ -173,7 +158,7 @@ def get_rag_response(
                 api_username,
                 api_password,
             ),
-            params={"input": content},
+            params=params,
             timeout=120,
         )
         try:
