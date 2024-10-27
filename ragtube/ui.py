@@ -1,25 +1,34 @@
 import pandas as pd
+import requests
 import streamlit as st
 
 from ragtube.api import RAGError, RAGOutput, get_rag_response
+from ragtube.models import Channel
 from ragtube.settings import get_settings
 from ragtube.transcript import WATCH_URL
 
 settings = get_settings()
-RAG_URL = "http://{}:{}/rag".format(
+API_URL = "http://{}:{}".format(
     settings.api_host.get_secret_value(), settings.api_port.get_secret_value()
 )
 
 
 st.title("💬 Chatbot")
-st.caption("🚀 RAG powered by LLama 3.1")
 if "messages" not in st.session_state:
     st.session_state["messages"] = [
         {
             "role": "assistant",
-            "content": "Hello! I'm here to help you with any questions you have about [ThePrimeagen](https://www.youtube.com/@ThePrimeTimeagen), a YouTuber who creates content related to software engineering. Feel free to ask me anything, and I'll use transcriptions from his videos to provide you with accurate and helpful answers.",
+            "content": "Hello! I am here to help answer any questions you may have about the YouTuber listed. Feel free to ask me anything, and I will provide you with accurate and helpful answers using transcriptions from their videos.",
         }
     ]
+
+response = requests.get(f"{API_URL}/channel", timeout=5)
+response.raise_for_status()
+channels = [Channel.model_validate(channel) for channel in response.json()]
+
+channel_selected = st.selectbox(
+    "Filter by channel", (channel.title for channel in channels), index=None
+)
 
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["content"])
@@ -27,11 +36,17 @@ for msg in st.session_state.messages:
 if prompt := st.chat_input():
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.chat_message("user").write(prompt)
+    params = {"input": st.session_state.messages[-1]["content"]}
+    if channel_selected:
+        for channel in channels:
+            if channel.title == channel_selected:
+                params["channel_id"] = channel.id
+                break
     response = get_rag_response(
-        RAG_URL,
+        f"{API_URL}/rag",
         settings.api_user.get_secret_value(),
         settings.api_password.get_secret_value(),
-        st.session_state.messages[-1]["content"],
+        params,
     )
 
     match response:
