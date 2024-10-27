@@ -10,7 +10,7 @@ from sqlmodel import (
     text,
 )
 
-from ragtube.models import Chunk
+from ragtube.models import Chunk, Video
 
 
 def create_vector_extension(engine: Engine):
@@ -39,6 +39,7 @@ class Retriever(BaseRetriever):
     engine: Engine
     embedding_model: Embeddings
     results_to_retrieve: int = 5
+    channel_id: str | None = None
 
     def _get_relevant_documents(
         self,
@@ -48,11 +49,17 @@ class Retriever(BaseRetriever):
     ) -> list[Document]:
         with Session(self.engine) as session:
             embedding = self.embedding_model.embed_query(query)
-            docs_retrieved = session.exec(
-                select(Chunk)
-                .order_by(Chunk.embedding.l2_distance(embedding))
-                .limit(self.results_to_retrieve)
-            ).all()
+            statement = select(Chunk)
+            if self.channel_id:
+                statement = statement.join(Video).where(
+                    Video.channel_id == self.channel_id
+                )
+
+            statement = statement.order_by(
+                Chunk.embedding.l2_distance(embedding)
+            ).limit(self.results_to_retrieve)
+
+            docs_retrieved = session.exec(statement).all()
             docs_retrieved = [
                 Document(
                     page_content=doc.content,
