@@ -11,6 +11,7 @@ from ragtube.database import setting_engine
 from ragtube.embedding import get_bge_embedding_model
 from ragtube.params import get_params
 from ragtube.prompt import get_prompt
+from ragtube.rerank import get_rerank
 from ragtube.retriever import Retriever
 
 
@@ -40,6 +41,12 @@ def get_rag_chain(channel_id: str | None = None):
         embedding_model=embedding_model,
         results_to_retrieve=params.results_to_retrieve,
         channel_id=channel_id,
+    )
+    retriever = get_rerank(
+        retriever,
+        params.results_to_retrieve,
+        params.rerank_score_threshold,
+        params.rerank_model_name,
     )
     prompt = get_prompt()
     rag_chain = create_rag_chain(chat_model, retriever, prompt)
