@@ -53,6 +53,8 @@ if prompt := st.chat_input():
         case RAGError():
             st.error("An error occurred")
             st.json(response.response)
+        case RAGOutput(answer=_, context=[]):
+            st.write("No relevant transcriptions were retrieved.")
         case RAGOutput():
             st.session_state.messages.append(
                 {"role": "assistant", "content": response.answer}
