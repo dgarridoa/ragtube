@@ -20,6 +20,8 @@ class Params(BaseModel):
     index_hnsm_ef_construction: int = 64
     index_hnsm_ef_searh: int = 40
     results_to_retrieve: int = 5
+    rerank_model_name: str = "rank-T5-flan"
+    rerank_score_threshold: float = 0.1
     chat_model_name: str = "llama3.1:8b"
     chat_temperature: float = 0.0
     chat_max_tokens: int = 500
