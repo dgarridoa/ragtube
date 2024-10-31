@@ -123,7 +123,7 @@ async def channel() -> list[Channel]:
         return list(session.exec(select(Channel)).all())
 
 
-@app.post("/rag")
+@app.get("/rag")
 async def rag(
     *,
     input: str,
@@ -152,7 +152,7 @@ def get_rag_response(
     url: str, api_username: str, api_password: str, params: dict
 ) -> RAGOutput | RAGError:
     try:
-        response = requests.post(
+        response = requests.get(
             url,
             auth=(
                 api_username,
