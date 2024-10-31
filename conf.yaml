@@ -1,6 +1,8 @@
 channel_id:
   - UCUyeluBRhGPCW4rPe_UvBZQ # ThePrimeTime
   - UCd3dNckv1Za2coSaHGHl5aA # TJ DeVries
+  - UCSHZKyawb77ixDdsGog4iWA # Lex Fridman
+  - UC9x0AN7BWHpCDHSm9NiJFJQ # NetworkChuck
 language: en
 request_timeout: 60
 # request_proxies:
