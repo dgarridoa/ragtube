@@ -3,12 +3,12 @@ from langchain.retrievers.document_compressors import FlashrankRerank
 from langchain_core.retrievers import RetrieverLike
 
 
-def get_rerank(
+def get_rerank_retriever(
     retriever: RetrieverLike,
     results_to_retrieve: int = 5,
     score_threshold: float = 0.1,
     model_name: str = "rank-T5-flan",
-):
+) -> ContextualCompressionRetriever:
     compressor = FlashrankRerank(
         top_n=results_to_retrieve,
         score_threshold=score_threshold,

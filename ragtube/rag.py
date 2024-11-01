@@ -42,12 +42,12 @@ def get_rag_chain(channel_id: str | None = None):
         results_to_retrieve=params.results_to_retrieve,
         channel_id=channel_id,
     )
-    retriever = get_rerank(
+    rerank_retriever = get_rerank(
         retriever,
         params.results_to_retrieve,
         params.rerank_score_threshold,
         params.rerank_model_name,
     )
     prompt = get_prompt()
-    rag_chain = create_rag_chain(chat_model, retriever, prompt)
+    rag_chain = create_rag_chain(chat_model, rerank_retriever, prompt)
     return rag_chain
