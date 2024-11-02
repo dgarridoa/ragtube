@@ -1,7 +1,7 @@
 from functools import lru_cache
 
 from sqlalchemy.engine import Engine
-from sqlmodel import SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine
 
 from ragtube.retriever import create_vector_extension
 from ragtube.settings import get_settings
@@ -21,3 +21,9 @@ def setting_engine() -> Engine:
     create_vector_extension(engine)
     SQLModel.metadata.create_all(engine)
     return engine
+
+
+def get_session():
+    engine = setting_engine()
+    with Session(engine) as session:
+        yield session
