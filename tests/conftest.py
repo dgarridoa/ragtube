@@ -48,3 +48,9 @@ def engine() -> Generator[Engine, None, None]:
     SQLModel.metadata.create_all(engine)
     yield engine
     SQLModel.metadata.drop_all(engine)
+
+
+@pytest.fixture(name="session")
+def session_fixture(engine: Engine):
+    with Session(engine) as session:
+        yield session
