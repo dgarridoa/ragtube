@@ -9,7 +9,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, Field
 from sqlmodel import Session, select
 
-from ragtube.database import setting_engine
+from ragtube.database import get_session
 from ragtube.models import Channel
 from ragtube.rag import get_rag_chain
 from ragtube.settings import get_settings
@@ -117,10 +117,8 @@ async def readiness():
 
 
 @app.get("/channel")
-async def channel() -> list[Channel]:
-    engine = setting_engine()
-    with Session(engine) as session:
-        return list(session.exec(select(Channel)).all())
+async def channel(*, session: Session = Depends(get_session)) -> list[Channel]:
+    return list(session.exec(select(Channel)).all())
 
 
 @app.get("/rag")
@@ -128,9 +126,9 @@ async def rag(
     *,
     input: str,
     channel_id: str | None = None,
-    username: Annotated[str, Depends(get_current_username)],
+    _: Annotated[str, Depends(get_current_username)],
+    rag_chain=Depends(get_rag_chain),
 ) -> RAGOutput:
-    rag_chain = get_rag_chain(channel_id)
     response = rag_chain.invoke({"input": input})
     output = RAGOutput(
         answer=response["answer"],
