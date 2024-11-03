@@ -37,8 +37,8 @@ def create_chunk_table(engine: Engine):
             id=1,
             content="I often make this joke which is agile's a lot like communism you know people just keep not trying it correctly um what is",
             embedding=[
-                -0.297897279262542724609375,
-                -2.93831539154052734375,
+                0.20749013125896453857421875,
+                0.91412651538848876953125,
             ],
             video_id="Guy5D3PJlZk",
             video=video,
@@ -47,8 +47,8 @@ def create_chunk_table(engine: Engine):
             id=2,
             content="it correctly um what is what is the correct way to Agile oh gee um it's a real simple idea right uh do things",
             embedding=[
-                0.604319095611572265625,
-                -0.21918331086635589599609375,
+                -0.885921180248260498046875,
+                0.85550343990325927734375,
             ],
             video_id="Guy5D3PJlZk",
             video=video,
@@ -57,8 +57,8 @@ def create_chunk_table(engine: Engine):
             id=3,
             content="idea right uh do things in really short sequences measure how much you get done in every sequence use that measurement to project an end",
             embedding=[
-                -0.3561325967311859130859375,
-                0.29398024082183837890625,
+                -0.227100789546966552734375,
+                -1.99812042713165283203125,
             ],
             video_id="Guy5D3PJlZk",
             video=video,
@@ -67,8 +67,8 @@ def create_chunk_table(engine: Engine):
             id=4,
             content="measurement to project an end date and tell everybody that's kind of it",
             embedding=[
-                -0.3162524402141571044921875,
-                -0.392429411411285400390625,
+                0.26584398746490478515625,
+                0.608121931552886962890625,
             ],
             video_id="Guy5D3PJlZk",
             video=video,
