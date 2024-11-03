@@ -7,7 +7,7 @@ from sqlmodel import Session
 
 from ragtube.models import Channel, Chunk, Video
 from ragtube.rerank import get_rerank_retriever
-from ragtube.retriever import Retriever, create_index
+from ragtube.retriever import Retriever
 
 
 def create_chunk_table(engine: Engine):
@@ -84,7 +84,6 @@ def test_rerank_retriever(engine: Engine):
     assert Chunk.embedding.type.dim == 2
 
     create_chunk_table(engine)
-    create_index(engine)
 
     embedding_model = DeterministicFakeEmbedding(size=2)
     retriever = Retriever(
