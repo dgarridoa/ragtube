@@ -22,8 +22,12 @@ def get_channel_metadata(
 ) -> Channel:
     params = {"part": "snippet", "id": channel_id, "key": api_key}
     url = f"{YOUTUBE_API_URL}/channels"
-    response = requests.get(url, params=params, timeout=timeout).json()
-    title = response["items"][0]["snippet"]["title"]
+    response = requests.get(url, params=params, timeout=timeout)
+    response.raise_for_status()
+    data = response.json()
+    if "items" not in data:
+        raise HTTPError("No channel found.")
+    title = data["items"][0]["snippet"]["title"]
     return Channel(id=channel_id, title=title)
 
 
