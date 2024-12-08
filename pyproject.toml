@@ -1,8 +1,14 @@
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
 [project]
 name = "ragtube"
 version = "0.1.0"
 description = ""
-authors = ["Diego Alberto Garrido Amaya <diego.garrido.6568@gmail.com>"]
+authors = [
+  { name = "Diego Alberto Garrido Amaya", email = "<diego.garrido.6568@gmail.com>" },
+]
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
