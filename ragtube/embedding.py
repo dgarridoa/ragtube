@@ -1,16 +1,16 @@
-from langchain.embeddings import HuggingFaceBgeEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from sqlalchemy.engine import Engine
 from sqlmodel import Session, col, select
 
 from ragtube.models import Chunk
 
 
-def get_bge_embedding_model(
-    model_name: str = "BAAI/bge-small-en-v1.5",
+def get_embedding_model(
+    model_name: str = "BAAI/bge-large-en-v1.5",
     model_kwargs: dict | None = None,
     encode_kwargs: dict | None = None,
 ):
-    model = HuggingFaceBgeEmbeddings(
+    model = HuggingFaceEmbeddings(
         model_name=model_name,
         model_kwargs=model_kwargs if model_kwargs else {},
         encode_kwargs=encode_kwargs if encode_kwargs else {},
@@ -30,7 +30,7 @@ class EmbeddingTask:
         self.model_name = model_name
         self.model_kwargs = model_kwargs
         self.encode_kwargs = encode_kwargs
-        self.model = get_bge_embedding_model(
+        self.model = get_embedding_model(
             model_name=self.model_name,
             model_kwargs=self.model_kwargs,
             encode_kwargs=self.encode_kwargs,

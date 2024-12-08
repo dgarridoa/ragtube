@@ -8,7 +8,7 @@ from langchain_core.retrievers import BaseRetriever
 
 from ragtube.chat import get_ollama_model
 from ragtube.database import setting_engine
-from ragtube.embedding import get_bge_embedding_model
+from ragtube.embedding import get_embedding_model
 from ragtube.params import get_params
 from ragtube.prompt import get_prompt
 from ragtube.rerank import get_rerank_retriever
@@ -31,7 +31,7 @@ def get_rag_chain(channel_id: str | None = None):
     chat_model = get_ollama_model(
         params.chat_model_name, params.chat_temperature, params.chat_max_tokens
     )
-    embedding_model = get_bge_embedding_model(
+    embedding_model = get_embedding_model(
         params.embedding_model_name,
         params.embedding_model_kwargs,
         params.embedding_encode_kwargs,
