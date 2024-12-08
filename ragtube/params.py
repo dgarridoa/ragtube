@@ -1,8 +1,11 @@
+import os
 import pathlib
 from functools import lru_cache
 
 import yaml
 from pydantic import BaseModel
+
+from ragtube import PROJECT_DIR
 
 
 class Params(BaseModel):
@@ -28,7 +31,7 @@ class Params(BaseModel):
 
 @lru_cache
 def get_params() -> Params:
-    conf_file = "conf.yaml"
+    conf_file = os.path.join(PROJECT_DIR, "conf.yaml")
     config = yaml.safe_load(pathlib.Path(conf_file).read_text())
     params = Params(**config)
     return params
