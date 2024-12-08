@@ -9,8 +9,8 @@ request_timeout: 60
 #   https: https://user:password@ip:port
 chunk_size: 500
 chunk_overlap: 50
-embedding_size: 384
-embedding_model_name: BAAI/bge-small-en-v1.5
+embedding_size: 1024
+embedding_model_name: BAAI/bge-large-en-v1.5
 embedding_model_kwargs:
   device: cuda
 # embedding_encode_kwargs:
