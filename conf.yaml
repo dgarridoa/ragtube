@@ -5,8 +5,6 @@ channel_id:
   - UC9x0AN7BWHpCDHSm9NiJFJQ # NetworkChuck
 language: en
 request_timeout: 60
-# request_proxies:
-#   https: https://user:password@ip:port
 chunk_size: 500
 chunk_overlap: 50
 embedding_size: 384
