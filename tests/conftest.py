@@ -21,9 +21,9 @@ def mock_embedding_size():
 
 
 @pytest.fixture(scope="session", autouse=True)
-def mock_get_bge_embedding_model():
+def mock_get_embedding_model():
     with patch(
-        "ragtube.embedding.get_bge_embedding_model",
+        "ragtube.embedding.get_embedding_model",
         return_value=DeterministicFakeEmbedding(size=2),
     ):
         yield
