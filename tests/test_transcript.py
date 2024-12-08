@@ -148,9 +148,14 @@ def test_get_channel_videos(settings: Settings):
     assert actual_videos == videos()
 
 
-def test_get_video_captions():
+def test_get_video_captions(settings: Settings):
     actual_video_captions = get_video_captions(
-        "Guy5D3PJlZk", language="en", timeout=5
+        "Guy5D3PJlZk",
+        language="en",
+        timeout=5,
+        proxies={"https": settings.https_proxy.get_secret_value()}
+        if settings.https_proxy is not None
+        else None,
     )
     assert actual_video_captions == video_captions()
 
@@ -162,6 +167,9 @@ def test_video_transcript_task(engine: Engine, settings: Settings):
         language="en",
         timeout=60,
         api_key=settings.youtube_api_key.get_secret_value(),
+        proxies={"https": settings.https_proxy.get_secret_value()}
+        if settings.https_proxy is not None
+        else None,
     )
 
     actual_videos = task.get_videos("UC34rhn8Um7R18-BHjPklYlw")

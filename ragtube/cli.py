@@ -28,13 +28,18 @@ def update_index(
     settings = get_settings()
     params = get_params()
     engine = setting_engine()
+    proxies = (
+        {"https": settings.https_proxy.get_secret_value()}
+        if settings.https_proxy
+        else None
+    )
     transcript_task = VideoTranscriptTask(
         engine,
         channel_id or params.channel_id,
         settings.youtube_api_key.get_secret_value(),
         params.language,
         params.request_timeout,
-        params.request_proxies,
+        proxies,
     )
     chunk_task = ChunkTask(engine, params.chunk_size, params.chunk_overlap)
     embedding_task = EmbeddingTask(

@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     )
 
     youtube_api_key: SecretStr
+    https_proxy: SecretStr | None = None
     db_user: SecretStr
     db_password: SecretStr
     db_host: SecretStr
