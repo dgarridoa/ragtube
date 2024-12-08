@@ -3,6 +3,7 @@ from llama_index.core.node_parser import (
 )
 from sqlalchemy.engine import Engine
 from sqlmodel import Session, col, select
+from tqdm import tqdm
 
 from ragtube.models import Chunk, Video
 
@@ -47,7 +48,7 @@ class ChunkTask:
 
     def get_videos_content_chunks(self, videos: list[Video]) -> list[Chunk]:
         videos_content_chunks = []
-        for video_content in videos:
+        for video_content in tqdm(videos, desc="Chunking"):
             videos_content_chunks.extend(
                 get_video_content_chunks(self.splitter, video_content)
             )
