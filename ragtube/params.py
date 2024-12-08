@@ -31,7 +31,7 @@ class Params(BaseModel):
 
 @lru_cache
 def get_params() -> Params:
-    conf_file = os.path.join(PROJECT_DIR, "conf.yaml")
+    conf_file = os.path.join(PROJECT_DIR, "params.yaml")
     config = yaml.safe_load(pathlib.Path(conf_file).read_text())
     params = Params(**config)
     return params
