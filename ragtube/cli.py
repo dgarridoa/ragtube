@@ -18,7 +18,7 @@ def update_index(
     channel_id: Annotated[
         list[str] | None,
         typer.Argument(
-            help="Channel id, if not set channel_id from conf.yaml will be used"
+            help="Channel id, if not set channel_id from params.yaml will be used"
         ),
     ] = None,
 ):
