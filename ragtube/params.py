@@ -15,7 +15,7 @@ class Params(BaseModel):
     chunk_size: int = 500
     chunk_overlap: int = 50
     embedding_size: int = 384
-    embedding_model_name: str = "BAAI/bge-small-en-v1.5"
+    embedding_model_name: str = "BAAI/bge-large-en-v1.5"
     embedding_model_kwargs: dict | None = None
     embedding_encode_kwargs: dict | None = None
     index_hnsm_m: int = 16
