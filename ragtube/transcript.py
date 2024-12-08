@@ -5,6 +5,7 @@ import requests
 from requests.models import HTTPError
 from sqlalchemy.engine import Engine
 from sqlmodel import Session, col, select
+from tqdm import tqdm
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import CouldNotRetrieveTranscript
 
@@ -174,7 +175,7 @@ class VideoTranscriptTask:
 
     def add_videos_and_captions(self, videos: list[Video]):
         with Session(self.engine) as session:
-            for video in videos:
+            for video in tqdm(videos, desc="Captions"):
                 captions = get_video_captions(
                     video.id,
                     self.language,

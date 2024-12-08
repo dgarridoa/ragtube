@@ -1,6 +1,7 @@
 from langchain_huggingface import HuggingFaceEmbeddings
 from sqlalchemy.engine import Engine
 from sqlmodel import Session, col, select
+from tqdm import tqdm
 
 from ragtube.models import Chunk
 
@@ -45,7 +46,7 @@ class EmbeddingTask:
         return list(chunks)
 
     def add_embeddings(self, chunks: list[Chunk]) -> None:
-        for chunk in chunks:
+        for chunk in tqdm(chunks, desc="Embeddings"):
             chunk.embedding = self.model.embed_query(chunk.content)
 
     def launch(self):
