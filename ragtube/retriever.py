@@ -21,16 +21,25 @@ def create_vector_extension(engine: Engine):
         session.commit()
 
 
+VECTOR_OPS = ["l1", "l2", "cosine"]
+
+
 # TODO: ef_search
 def create_index(
-    engine: Engine, m: int = 16, ef_construction: int = 64, ef_search: int = 40
+    engine: Engine,
+    m: int = 16,
+    ef_construction: int = 64,
+    ef_search: int = 40,
+    vector_ops: str = "l2",
 ):
+    if vector_ops not in VECTOR_OPS:
+        raise ValueError(f"Invalid vector_ops: {vector_ops}")
     index = Index(
         "chunk_index",
         Chunk.embedding,
         postgresql_using="hnsw",
         postgresql_with={"m": m, "ef_construction": ef_construction},
-        postgresql_ops={"embedding": "vector_l2_ops"},
+        postgresql_ops={"embedding": f"vector_{vector_ops}_ops"},
     )
     index.create(engine, checkfirst=True)
 
@@ -38,8 +47,13 @@ def create_index(
 class Retriever(BaseRetriever):
     engine: Engine
     embedding_model: Embeddings
+    vector_ops: str = "l2"
     results_to_retrieve: int = 5
     channel_id: str | None = None
+
+    def model_post_init(self, __context):
+        if self.vector_ops not in VECTOR_OPS:
+            raise ValueError(f"Invalid vector_ops: {self.vector_ops}")
 
     def _get_relevant_documents(
         self,
@@ -55,9 +69,11 @@ class Retriever(BaseRetriever):
                     Video.channel_id == self.channel_id
                 )
 
-            statement = statement.order_by(
-                Chunk.embedding.l2_distance(embedding)
-            ).limit(self.results_to_retrieve)
+            vector_ops = f"{self.vector_ops}_distance"
+            distance_fn = getattr(Chunk.embedding, vector_ops)
+            statement = statement.order_by(distance_fn(embedding)).limit(
+                self.results_to_retrieve
+            )
 
             docs_retrieved = session.exec(statement).all()
             docs_retrieved = [
