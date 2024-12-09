@@ -21,6 +21,7 @@ class Params(BaseModel):
     index_hnsm_m: int = 16
     index_hnsm_ef_construction: int = 64
     index_hnsm_ef_searh: int = 40
+    index_vector_ops: str = "l2"
     results_to_retrieve: int = 5
     rerank_model_name: str = "rank-T5-flan"
     rerank_score_threshold: float = 0.1
