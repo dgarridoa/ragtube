@@ -1,0 +1,58 @@
+name: CI pipeline
+
+on:
+  pull_request:
+    types: [ opened, synchronize ]
+    branches:
+      - 'main'
+    paths:
+      - '**.py'
+      - 'pyproject.toml'
+  push:
+    branches:
+      - 'test/ci'
+
+jobs:
+  ci-pipeline:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install uv
+        run: curl -sSL https://astral.sh/uv/install.sh | sh
+
+      - name: Install project dependencies
+        run: uv sync --all-extras
+
+      - name: Run pre-commit check
+        run: uv run pre-commit run --all-files
+
+      - name: Create .env file for testing
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: |
+          echo 'YOUTUBE_API_KEY='$YOUTUBE_API_KEY >> .env-test
+          echo 'DB_USER=postgres' >> .env-test
+          echo 'DB_PASSWORD=postgres' >> .env-test
+          echo 'DB_HOST=localhost' >> .env-test
+          echo 'DB_PORT=5432' >> .env-test
+          echo 'DB_NAME=postgres' >> .env-test
+          echo 'API_USER=test' >> .env-test
+          echo 'API_PASSWORD=test' >> .env-test
+          echo 'API_HOST=localhost' >> .env-test
+          echo 'API_PORT=5000' >> .env-test
+
+      - name: Create and run a PostgreSQL container for testing
+        run: |
+          docker run --name test-postgres -p 5432:5432 -d \
+          -e POSTGRES_HOST_AUTH_METHOD=trust pgvector/pgvector:pg16
+
+      - name: Run unit tests
+        run: uv run pytest tests
