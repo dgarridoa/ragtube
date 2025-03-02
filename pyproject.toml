@@ -49,7 +49,9 @@ test = [
 
 [tool.ruff]
 line-length = 79
-lint.select =[
+
+[tool.ruff.lint]
+select =[
   "E", # pycodestyle errors
   "W", # pycodestyle warnings
   "F", # pyflakes
@@ -57,7 +59,7 @@ lint.select =[
   "C", # flake8-comprehensions
   "S", # flake8-bandit
 ]
-lint.ignore = [
+ignore = [
   "S101", # use assert
   "E501", # line-too-long, handled by black
 ]
