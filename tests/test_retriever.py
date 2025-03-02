@@ -6,7 +6,7 @@ from sqlalchemy.engine import Engine
 from sqlmodel import Session
 
 from ragtube.models import Channel, Chunk, Video
-from ragtube.retriever import Retriever, create_index
+from ragtube.retriever import Retriever, create_index, drop_index
 
 
 def create_chunk_table(engine: Engine):
@@ -116,3 +116,4 @@ def test_retriever(engine: Engine):
         ),
     ]
     assert docs == expected_docs
+    drop_index(engine, "chunk_index")

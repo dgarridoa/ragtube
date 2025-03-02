@@ -44,6 +44,14 @@ def create_index(
     index.create(engine, checkfirst=True)
 
 
+def drop_index(engine: Engine, index_name: str):
+    with Session(engine) as session:
+        session.connection().execute(
+            text(f"DROP INDEX IF EXISTS {index_name}")
+        )
+        session.commit()
+
+
 class Retriever(BaseRetriever):
     engine: Engine
     embedding_model: Embeddings
