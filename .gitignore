@@ -7,7 +7,6 @@ __pycache__/
 *.egg-info/
 build
 dist
-*.lock
 
 # Pyenv
 .python-version
