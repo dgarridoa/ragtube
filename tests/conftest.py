@@ -34,6 +34,15 @@ def settings() -> Settings:
     return Settings(_env_file=".env-test")  # type: ignore
 
 
+@pytest.fixture(scope="session", autouse=True)
+def mock_get_settings():
+    with patch(
+        "ragtube.api.get_settings",
+        return_value=Settings(_env_file=".env-test"),  # type: ignore
+    ):
+        yield
+
+
 @pytest.fixture
 def engine() -> Generator[Engine, None, None]:
     engine = create_engine(
