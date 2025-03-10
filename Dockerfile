@@ -1,10 +1,6 @@
-FROM nvidia/cuda:12.6.2-cudnn-devel-ubuntu24.04 AS ragtube-base
+FROM python:3.11-slim-bookworm AS ragtube-base
+COPY --from=ghcr.io/astral-sh/uv:0.6.5 /uv /uvx /bin/
 WORKDIR /app
-RUN apt update && apt install -y curl
-ADD https://astral.sh/uv/install.sh /uv-installer.sh
-RUN sh /uv-installer.sh && rm /uv-installer.sh
-ENV PATH="/root/.cargo/bin/:$PATH"
-RUN uv python install 3.11
 RUN uv python pin 3.11
 COPY . .
 
