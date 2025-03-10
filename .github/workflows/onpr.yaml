@@ -1,0 +1,86 @@
+name: CI pipeline
+
+on:
+  pull_request:
+    types: [ opened, synchronize ]
+    branches:
+      - 'main'
+    # paths:
+    #   - '**.py'
+    #   - 'pyproject.toml'
+    #   - 'Dockerfile'
+    #   - '*.yaml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Create .env-test file
+        run: |
+          cat <<EOF > .env-test
+          YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}
+          HTTPS_PROXY=${{ secrets.HTTPS_PROXY }}
+          DB_USER=postgres
+          DB_PASSWORD=postgres
+          DB_HOST=postgres
+          DB_PORT=5432
+          DB_NAME=postgres
+          API_USER=test
+          API_PASSWORD=test
+          API_HOST=api
+          API_PORT=5000
+          EOF
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install project dependencies
+        run: |
+          uv sync --all-extras
+
+      - name: Run pre-commit check
+        run: |
+          uv run pre-commit run --all-files
+
+      - name: Run pytest
+        run: |
+          uv run pytest --cov-report "xml:coverage.xml" --cov ragtube tests/
+
+      - name: Pytest coverage comment
+        uses: MishaKav/pytest-coverage-comment@main
+        with:
+          pytest-xml-coverage-path: ./coverage.xml
+
+      - name: Docker build and publish
+        run: |
+          docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
+          docker build --target ragtube -t ragtube .
+          docker build --target ollama -t ollama .
+          docker tag ragtube:latest $DOCKER_HUB_USERNAME/ragtube:latest
+          docker tag ollama:latest $DOCKER_HUB_USERNAME/ollama:latest
+          docker push $DOCKER_HUB_USERNAME/ragtube
+          docker push $DOCKER_HUB_USERNAME/ollama
+        env:
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
