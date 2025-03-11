@@ -9,8 +9,8 @@ chunk_size: 500
 chunk_overlap: 50
 embedding_size: 1024
 embedding_model_name: BAAI/bge-large-en-v1.5
-embedding_model_kwargs:
-  device: cuda
+# embedding_model_kwargs:
+#   device: cuda
 # embedding_encode_kwargs:
 #   ...
 index_hnsm_m: 16
