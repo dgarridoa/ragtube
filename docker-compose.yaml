@@ -1,5 +1,14 @@
 version: "3.8"
 services:
+  watchtower:
+    image: containrrr/watchtower
+    command:
+      - "--label-enable"
+      - "--interval"
+      - "30"
+      - "--rolling-restart"
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
   db:
     image: pgvector/pgvector:pg16
     container_name: ragtube-db
@@ -16,10 +25,9 @@ services:
       start_period: 30s
       timeout: 10s
   db-init:
-    image: ragtube:latest
-    build:
-      context: .
-      target: ragtube
+    image: dgarridoa/ragtube:latest
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     container_name: ragtube-db-init
     depends_on:
       db:
@@ -33,10 +41,9 @@ services:
       - "ragtube.cli"
     env_file: ".env"
   ollama:
-    image: ollama:latest
-    build:
-      context: .
-      target: ollama
+    image: dgarridoa/ollama:latest
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     container_name: ragtube-ollama
     volumes:
       - ollama:/root/.ollama
@@ -47,10 +54,9 @@ services:
       start_period: 30s
       timeout: 10s
   api:
-    image: ragtube:latest
-    build:
-      context: .
-      target: ragtube
+    image: dgarridoa/ragtube:latest
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     container_name: ragtube-api
     depends_on:
       db-init:
@@ -80,10 +86,9 @@ services:
       start_period: 300s
       timeout: 10s
   ui:
-    image: ragtube:latest
-    build:
-      context: .
-      target: ragtube
+    image: dgarridoa/ragtube:latest
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     container_name: ragtube-ui
     depends_on:
       api:
