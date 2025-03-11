@@ -25,13 +25,6 @@ services:
       db:
         condition: service_healthy
         restart: true
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
     command:
       - "uv"
       - "run"
@@ -44,13 +37,6 @@ services:
       context: .
       target: ollama
     container_name: ragtube-ollama
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
     volumes:
       - ollama:/root/.ollama
     healthcheck:
@@ -70,13 +56,6 @@ services:
         condition: service_completed_successfully
       ollama:
         condition: service_healthy
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
     command:
       - "uv"
       - "run"
