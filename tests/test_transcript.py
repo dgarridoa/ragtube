@@ -143,7 +143,7 @@ def test_get_channel_videos(settings: Settings):
     actual_videos = get_channel_videos(
         "UC34rhn8Um7R18-BHjPklYlw",
         settings.youtube_api_key.get_secret_value(),
-        timeout=5,
+        timeout=60,
     )
     assert actual_videos == videos()
 
@@ -152,7 +152,7 @@ def test_get_video_captions(settings: Settings):
     actual_video_captions = get_video_captions(
         "Guy5D3PJlZk",
         language="en",
-        timeout=5,
+        timeout=60,
         proxies={"https": settings.https_proxy.get_secret_value()}
         if settings.https_proxy is not None
         else None,
