@@ -20,6 +20,6 @@ index_vector_ops: l2
 results_to_retrieve: 5
 rerank_model_name: rank-T5-flan
 rerank_score_threshold: 0.1
-chat_model_name: llama3.1:8b
+chat_model_name: llama3.2:3b
 chat_temperature: 0.1
 chat_max_tokens: 500
