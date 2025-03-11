@@ -31,6 +31,7 @@ services:
       - "python"
       - "-m"
       - "ragtube.cli"
+    env_file: ".env"
   ollama:
     image: ollama:latest
     build:
@@ -69,6 +70,7 @@ services:
       - "log_config.yaml"
     ports:
       - 5000:5000
+    env_file: ".env"
     environment:
       - OLLAMA_HOST=http://ollama:11434
     healthcheck:
@@ -96,6 +98,7 @@ services:
       - "ragtube/ui.py"
     ports:
       - 8501:8501
+    env_file: ".env"
 volumes:
   postgres_data:
   ollama:
