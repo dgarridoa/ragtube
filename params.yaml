@@ -8,11 +8,8 @@ request_timeout: 60
 chunk_size: 500
 chunk_overlap: 50
 embedding_size: 1024
-embedding_model_name: BAAI/bge-large-en-v1.5
-# embedding_model_kwargs:
-#   device: cuda
-# embedding_encode_kwargs:
-#   ...
+embedding_model_name: bge-large
+embeddig_num_ctx: 512
 index_hnsm_m: 16
 index_hnsm_ef_construction: 64
 index_hnsm_ef_searh: 40

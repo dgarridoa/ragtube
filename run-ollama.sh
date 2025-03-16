@@ -9,3 +9,4 @@ while [ "$(ollama list | grep 'NAME')" == "" ]; do
 done
 
 ollama pull $(sed -n 's/.*chat_model_name: *"\?\([^"]*\)"\?/\1/p' params.yaml)
+ollama pull $(sed -n 's/.*embedding_model_name: *"\?\([^"]*\)"\?/\1/p' params.yaml)

@@ -33,8 +33,7 @@ def get_rag_chain(channel_id: str | None = None):
     )
     embedding_model = get_embedding_model(
         params.embedding_model_name,
-        params.embedding_model_kwargs,
-        params.embedding_encode_kwargs,
+        params.embedding_num_ctx,
     )
     retriever = Retriever(
         engine=setting_engine(),

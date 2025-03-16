@@ -43,10 +43,7 @@ def update_index(
     )
     chunk_task = ChunkTask(engine, params.chunk_size, params.chunk_overlap)
     embedding_task = EmbeddingTask(
-        engine,
-        params.embedding_model_name,
-        params.embedding_model_kwargs,
-        params.embedding_encode_kwargs,
+        engine, params.embedding_model_name, params.embedding_num_ctx
     )
 
     transcript_task.launch()
