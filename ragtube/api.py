@@ -1,10 +1,12 @@
+import json
 import logging
 import secrets
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Generator
 
 import requests
 from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, Field
 from sqlmodel import Session, select
@@ -71,7 +73,7 @@ class RAGOutput(BaseModel):
     context: list[Document]
 
 
-class RAGError(BaseModel):
+class RAGError(Exception):
     error: str
     response: dict = {}
 
@@ -128,29 +130,36 @@ async def rag(
     channel_id: str | None = None,
     _: Annotated[str, Depends(get_current_username)],
     rag_chain=Depends(get_rag_chain),
-) -> RAGOutput:
-    response = rag_chain.invoke({"input": input})
-    output = RAGOutput(
-        answer=response["answer"],
-        context=[
-            Document(
-                id=doc.metadata["id"],
-                video_id=doc.metadata["video_id"],
-                title=doc.metadata["title"],
-                publish_time=doc.metadata["publish_time"],
-                content=doc.page_content,
-            )
-            for doc in response["context"]
-        ],
+):
+    response = rag_chain.stream({"input": input})
+
+    def stream(response):
+        for message in response:
+            if "context" in message:
+                context = [
+                    Document(
+                        id=doc.metadata["id"],
+                        video_id=doc.metadata["video_id"],
+                        title=doc.metadata["title"],
+                        publish_time=doc.metadata["publish_time"],
+                        content=doc.page_content,
+                    ).model_dump(mode="json")
+                    for doc in message["context"]
+                ]
+                yield json.dumps({"context": context}) + "\n"
+            if "answer" in message:
+                yield json.dumps({"answer": message["answer"]}) + "\n"
+
+    return StreamingResponse(
+        stream(response), media_type="application/x-ndjson"
     )
-    return output
 
 
 def get_rag_response(
     url: str, api_username: str, api_password: str, params: dict
-) -> RAGOutput | RAGError:
+) -> Generator[list[Document] | str | None, None, None]:
     try:
-        response = requests.get(
+        with requests.get(
             url,
             auth=(
                 api_username,
@@ -158,14 +167,26 @@ def get_rag_response(
             ),
             params=params,
             timeout=120,
-        )
-        try:
-            response.raise_for_status()
-            return RAGOutput.model_validate(response.json())
-        except requests.exceptions.HTTPError as http_err:
-            return RAGError(error=str(http_err), response=response.json())
+            stream=True,
+        ) as r:
+            try:
+                r.raise_for_status()
+                for chunk in r.iter_lines():
+                    chunk_data = json.loads(chunk.decode("utf-8"))
+                    if "context" in chunk_data:
+                        context = None
+                        if len(chunk_data["context"]) > 0:
+                            context = [
+                                Document.model_validate(doc)
+                                for doc in chunk_data["context"]
+                            ]
+                        yield context
+                    elif "answer" in chunk_data:
+                        yield chunk_data["answer"]
+            except requests.exceptions.HTTPError as http_err:
+                raise RAGError(str(http_err), r.json())
     except Exception as err:
-        return RAGError(error=str(err))
+        raise RAGError(str(err))
 
 
 class ReadinessFilter(logging.Filter):
