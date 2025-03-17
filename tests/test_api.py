@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 import pytest
@@ -151,7 +152,15 @@ def test_rag(client: TestClient):
             "channel_id": "UC34rhn8Um7R18-BHjPklYlw",
         },
     )
-    data = response.json()
+    lines = response.text.split("\n")[:-1]
+    data = {"answer": "", "context": []}
+    for line in lines:
+        chunk_data = json.loads(line)
+        if "context" in chunk_data:
+            data["context"] = chunk_data["context"]
+        if "answer" in chunk_data:
+            data["answer"] += chunk_data["answer"]
+
     assert response.status_code == 200
     assert data == {
         "answer": "Agile is like Communism - everyone agrees it's a great idea, but when someone tries to implement it, it devolves into chaos and everyone starts pointing fingers at each other saying 'That's not true Agile!'",
