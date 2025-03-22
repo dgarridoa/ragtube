@@ -9,6 +9,19 @@ services:
       - "--rolling-restart"
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
+  reverse-proxy:
+    image: traefik:v3.3
+    container_name: traefik
+    environment:
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+      - TRAEFIK_CERTIFICATESRESOLVERS_CLOUDFLARE_ACME_EMAIL=${TRAEFIK_CERTIFICATESRESOLVERS_CLOUDFLARE_ACME_EMAIL}
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.yaml:/etc/traefik/traefik.yaml:ro
+      - ./certs/:/var/traefik/certs/:rw
   db:
     image: pgvector/pgvector:pg16
     container_name: ragtube-db
@@ -89,6 +102,13 @@ services:
     image: dgarridoa/ragtube:latest
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
+      - "traefik.enable=true"
+      - "traefik.http.routers.ui-http.rule=Host(`UI_HOST`)"
+      - "traefik.http.routers.ui-http.entrypoints=web"
+      - "traefik.http.routers.ui-https.rule=Host(`$UI_HOST`)"
+      - "traefik.http.routers.ui-https.tls=true"
+      - "traefik.http.routers.ui-https.tls.certresolver=cloudflare"
+      - "traefik.http.routers.ui-https.entrypoints=websecure"
     container_name: ragtube-ui
     depends_on:
       api:
@@ -103,6 +123,8 @@ services:
       - "ragtube/ui.py"
     ports:
       - 8501:8501
+    environment:
+      UI_HOST: ${UI_HOST}
     env_file: ".env"
 volumes:
   postgres_data:
