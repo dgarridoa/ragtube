@@ -1,0 +1,118 @@
+version: "3.8"
+services:
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    command:
+      - "--label-enable"
+      - "--interval"
+      - "30"
+      - "--rolling-restart"
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  reverse-proxy:
+    image: traefik:v3.3
+    container_name: traefik
+    environment:
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+      - TRAEFIK_CERTIFICATESRESOLVERS_CLOUDFLARE_ACME_EMAIL=${TRAEFIK_CERTIFICATESRESOLVERS_CLOUDFLARE_ACME_EMAIL}
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.yaml:/etc/traefik/traefik.yaml:ro
+      - ./certs/:/var/traefik/certs/:rw
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: ragtube-db
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+  db-init:
+    image: dgarridoa/ragtube:latest
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    container_name: ragtube-db-init
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    command:
+      - "uv"
+      - "run"
+      - "python"
+      - "-m"
+      - "ragtube.cli"
+    env_file: ".env"
+    environment:
+      - OLLAMA_HOST=http://host.docker.internal:11434
+  api:
+    image: dgarridoa/ragtube:latest
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    container_name: ragtube-api
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    command:
+      - "uv"
+      - "run"
+      - "uvicorn"
+      - "ragtube.api:app"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "5000"
+      - "--log-config"
+      - "log_config.yaml"
+    ports:
+      - 5000:5000
+    env_file: ".env"
+    environment:
+      - OLLAMA_HOST=http://host.docker.internal:11434
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:5000/readiness"]
+      interval: 30s
+      retries: 10
+      start_period: 300s
+      timeout: 10s
+  ui:
+    image: dgarridoa/ragtube:latest
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "traefik.enable=true"
+      - "traefik.http.routers.ui-http.rule=Host(`UI_HOST`)"
+      - "traefik.http.routers.ui-http.entrypoints=web"
+      - "traefik.http.routers.ui-https.rule=Host(`$UI_HOST`)"
+      - "traefik.http.routers.ui-https.tls=true"
+      - "traefik.http.routers.ui-https.tls.certresolver=cloudflare"
+      - "traefik.http.routers.ui-https.entrypoints=websecure"
+    container_name: ragtube-ui
+    depends_on:
+      api:
+        condition: service_healthy
+    command:
+      - "uv"
+      - "run"
+      - "python"
+      - "-m"
+      - "streamlit"
+      - "run"
+      - "ragtube/ui.py"
+    ports:
+      - 8501:8501
+    environment:
+      UI_HOST: ${UI_HOST}
+    env_file: ".env"
+volumes:
+  postgres_data:
