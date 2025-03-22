@@ -47,8 +47,6 @@ if prompt := st.chat_input():
         try:
             for response in get_rag_response(
                 f"{API_URL}/rag",
-                settings.api_user.get_secret_value(),
-                settings.api_password.get_secret_value(),
                 params=params,
             ):
                 match response:

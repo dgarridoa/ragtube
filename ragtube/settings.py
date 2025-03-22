@@ -19,8 +19,6 @@ class Settings(BaseSettings):
     db_host: SecretStr
     db_port: SecretStr
     db_name: SecretStr
-    api_user: SecretStr
-    api_password: SecretStr
     api_host: SecretStr
     api_port: SecretStr
 

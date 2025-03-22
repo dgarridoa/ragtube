@@ -146,7 +146,6 @@ def test_list_channels(client: TestClient):
 def test_rag(client: TestClient):
     response = client.get(
         "/rag",
-        auth=("test", "test"),
         params={
             "input": "Tell me a joke between agile and communism",
             "channel_id": "UC34rhn8Um7R18-BHjPklYlw",

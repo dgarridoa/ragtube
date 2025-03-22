@@ -41,8 +41,6 @@ jobs:
           DB_HOST=postgres
           DB_PORT=5432
           DB_NAME=postgres
-          API_USER=test
-          API_PASSWORD=test
           API_HOST=api
           API_PORT=5000
           EOF
