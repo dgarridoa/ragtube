@@ -2,6 +2,7 @@ version: "3.8"
 services:
   watchtower:
     image: containrrr/watchtower
+    container_name: watchtower
     command:
       - "--label-enable"
       - "--interval"
