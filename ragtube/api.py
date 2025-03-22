@@ -1,20 +1,18 @@
 import json
 import logging
-import secrets
 from datetime import datetime
 from typing import Annotated, Generator
 
 import requests
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI
 from fastapi.responses import StreamingResponse
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.security import HTTPBasic
 from pydantic import BaseModel, Field
 from sqlmodel import Session, select
 
 from ragtube.database import get_session
 from ragtube.models import Channel
 from ragtube.rag import get_rag_chain
-from ragtube.settings import get_settings
 
 
 class RAGInput(BaseModel):
@@ -82,37 +80,6 @@ app = FastAPI()
 security = HTTPBasic()
 
 
-def get_current_username(
-    credentials: Annotated[HTTPBasicCredentials, Depends(security)],
-):
-    settings = get_settings()
-    username = settings.api_user.get_secret_value()
-    password = settings.api_password.get_secret_value()
-
-    if username is None or password is None:
-        raise ValueError(
-            "API_USERNAME and API_PASSWORD environment variables must be set"
-        )
-
-    current_username_bytes = credentials.username.encode("utf8")
-    correct_username_bytes = username.encode("utf8")
-    is_correct_username = secrets.compare_digest(
-        current_username_bytes, correct_username_bytes
-    )
-    current_password_bytes = credentials.password.encode("utf8")
-    correct_password_bytes = password.encode("utf8")
-    is_correct_password = secrets.compare_digest(
-        current_password_bytes, correct_password_bytes
-    )
-    if not (is_correct_username and is_correct_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return credentials.username
-
-
 @app.get("/readiness")
 async def readiness():
     return {"status": "ok"}
@@ -128,7 +95,6 @@ async def rag(
     *,
     input: str,
     channel_id: str | None = None,
-    _: Annotated[str, Depends(get_current_username)],
     rag_chain=Depends(get_rag_chain),
 ):
     response = rag_chain.stream({"input": input})
@@ -156,15 +122,11 @@ async def rag(
 
 
 def get_rag_response(
-    url: str, api_username: str, api_password: str, params: dict
+    url: str, params: dict
 ) -> Generator[list[Document] | str | None, None, None]:
     try:
         with requests.get(
             url,
-            auth=(
-                api_username,
-                api_password,
-            ),
             params=params,
             timeout=120,
             stream=True,
