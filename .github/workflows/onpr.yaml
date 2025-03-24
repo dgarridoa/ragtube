@@ -37,7 +37,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Create .env-test file
         run: |
@@ -90,10 +90,17 @@ jobs:
             }
 
       - name: Docker login
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ vars.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+      - name: Login to GiHub Container Registry
+        uses: docker /login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -103,13 +110,17 @@ jobs:
 
       - name: Build and push Ragtube image
         id: ragtube
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
           target: ragtube
-          tags: ${{ vars.DOCKER_HUB_USERNAME }}/ragtube:latest
+          tags: |
+            ${{ vars.DOCKER_HUB_USERNAME }}/ragtube:latest
+            ${{ vars.DOCKER_HUB_USERNAME }}/ragtube:${{ github.sha }}
+            ghcr.io/${{ github.actor }}/ragtube:latest
+            ghcr.io/${{ github.actor }}/ragtube:${{ github.sha }}
 
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v2
@@ -120,13 +131,17 @@ jobs:
 
       - name: Build and push Ollama image
         id: ollama
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
           target: ollama
-          tags: ${{ vars.DOCKER_HUB_USERNAME }}/ollama:latest
+          tags: |
+            ${{ vars.DOCKER_HUB_USERNAME }}/ollama:latest
+            ${{ vars.DOCKER_HUB_USERNAME }}/ollama:${{ github.sha }}
+            ghcr.io/${{ github.actor }}/ollama:latest
+            ghcr.io/${{ github.actor }}/ollama:${{ github.sha }}
 
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v2
