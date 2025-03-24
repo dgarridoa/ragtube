@@ -14,6 +14,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      checks: write
+      pull-requests: write
+      packages: write
+      attestations: write
+      id-token: write
+
     services:
       postgres:
         image: pgvector/pgvector:pg16
@@ -70,28 +78,59 @@ jobs:
         with:
           pytest-xml-coverage-path: ./coverage.xml
 
-      - name: Docker build and publish
-        run: |
-          docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
-          docker buildx create --use
-          docker buildx build \
-            --platform linux/amd64,linux/arm64 \
-            --target ragtube \
-            -t $DOCKER_HUB_USERNAME/ragtube:latest \
-            --push .
-          docker image prune -a -f
-          docker buildx build \
-            --platform linux/amd64 \
-            --target ollama \
-            -t $DOCKER_HUB_USERNAME/ollama:latest \
-            --push .
-          docker image prune -a -f
-          docker buildx build \
-            --platform linux/arm64 \
-            --target ollama \
-            -t $DOCKER_HUB_USERNAME/ollama:latest \
-            --push .
+      - name: Set up Docker
+        uses: docker/setup-docker-action@v4
+        with:
+          daemon-config: |
+            {
+              "debug": true,
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
 
-        env:
-          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-          DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - name: Docker login
+        uses: docker/login-action@v2
+        with:
+          username: ${{ vars.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Ragtube image
+        id: ragtube
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          target: ragtube
+          tags: ${{ vars.DOCKER_HUB_USERNAME }}/ragtube:latest
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: index.docker.io/${{ vars.DOCKER_HUB_USERNAME }}/ragtube
+          subject-digest: ${{ steps.ragtube.outputs.digest }}
+          push-to-registry: true
+
+      - name: Build and push Ollama image
+        id: ollama
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          target: ollama
+          tags: ${{ vars.DOCKER_HUB_USERNAME }}/ollama:latest
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: index.docker.io/${{ vars.DOCKER_HUB_USERNAME }}/ollama
+          subject-digest: ${{ steps.ollama.outputs.digest }}
+          push-to-registry: true
