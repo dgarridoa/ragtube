@@ -64,8 +64,8 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl --fail http://localhost:11434"]
       interval: 10s
-      retries: 5
-      start_period: 30s
+      retries: 10
+      start_period: 120s
       timeout: 10s
   api:
     image: dgarridoa/ragtube:latest
