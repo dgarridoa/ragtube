@@ -193,8 +193,9 @@ The pull request will trigger the pipeline detailed in the `.github/workflows/on
 As prerequisites, you should have the following [Github Secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions) set up in your repository:
 - `YOUTUBE_API_KEY`
 - `HTTPS_PROXY`
-- `DOCKER_HUB_USERNAME`
 - `DOCKER_HUB_PASSWORD`
+
+, and set the `DOCKER_HUB_USERNAME` repository variable.
 
 Docker images:
 - https://hub.docker.com/repository/docker/dgarridoa/ragtube/general
