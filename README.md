@@ -9,7 +9,7 @@ Showcase https://ragtube.dgarridoa.xyz/
 
 • Database & Vector Storage: A PostgreSQL database is employed to persist data including channels, videos, transcriptions, and chunks. It utilizes the pgvector extension to enable vector similarity search, enabling exact and approximate nearest neighbgor search. To interact with the database the SQLModel ORM is used.
 
-• Ollama: To serve as a local embedding and language model. It generates embeddings for text (transcriptions chunks and queries) and for generating responses based on the query and its corresponding contextual information provided by the retriever.
+• Ollama: To serve a local embedding and language model. It generates embeddings for text (transcriptions chunks and queries) and for generating responses based on the query and its corresponding contextual information provided by the retriever.
 
 • Backend: Built using FastAPI, the backend layer exposes endpoints for readiness checks, listing channels, and handling RAG queries. This API communicates with both the database (to fetch data), and Ollama (to generate embeddings and chat completions). The RAG endpoint retrieve most relevant chunks, rerank them using FlasRank and filter them and finally pass them to the chat model to generate responses.
 
@@ -238,7 +238,7 @@ References:
 - [Traefik environment variables](https://doc.traefik.io/traefik/reference/static-configuration/env/)
 - [Create Cloudflare API token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/)
 
-# Orquestration
+# Orchestration
 
 Run the following command to start the services:
 
