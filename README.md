@@ -9,15 +9,15 @@ Showcase https://ragtube.dgarridoa.xyz/
 
 • Database & Vector Storage: A PostgreSQL database is employed to persist data including channels, videos, transcriptions, and chunks. It utilizes the pgvector extension to enable vector similarity search, enabling exact and approximate nearest neighbgor search. To interact with the database the SQLModel ORM is used.
 
-• Ollama: To serve as a local embedding and language model. It generates embeddings for text (transcriptions chunks and queries) and for generating responses based on the query and its corresponding contextual information provided by the retriever.
+• Ollama: To serve a local embedding and language model. It generates embeddings for text (transcriptions chunks and queries) and for generating responses based on the query and its corresponding contextual information provided by the retriever.
 
-• Backend: Built using FastAPI, the backend layer exposes endpoints for readiness checks, listing channels, and handling RAG queries. This API communicates with both the database (to fetch data), and Ollama (to generate embeddings and chat completions). The RAG endpoint retrieve most relevant chunks, rerank them using FlasRank and filter them and finally pass them to the chat model to generate responses.
+• Backend: Built using FastAPI, the backend layer exposes endpoints for readiness checks, listing channels, and handling RAG queries. This API communicates with both the database (to fetch data), and Ollama (to generate embeddings and chat completions). The RAG endpoint retrieve most relevant chunks, rerank them using FlashRank and filter them and finally pass them to the chat model to generate responses.
 
 • Frontend: The application’s user interface is built with Streamlit, which interacts with the FastAPI backend. It provides users with a way to ask questions and view search results and generated responses.
 
 • CLI and Database Tools: A Typer-based command line interface is provided for database population. It downloads transcriptions, split them into chunks, computes their embeddings and create the HNSW index if does not exist.
 
-• Containerization & Deployment: Docker Compose is used to orchestrate the entire application stack including the PostgreSQL database, Ollama (for model serving), FastAPI (banckend), Streamlit (frontend), and additional services such as Watchtower for automated rolling releases and Traefik serving as a reverse proxy with SSL handling.
+• Containerization & Deployment: Docker Compose is used to orchestrate the entire application stack including the PostgreSQL database, Ollama (for model serving), FastAPI (banckend), Streamlit (frontend), and additional services such as Watchtower for automated rolling releases and Traefik as a reverse proxy with SSL handling.
 
 ```mermaid
 sequenceDiagram
@@ -64,7 +64,7 @@ Application parameters are defined in the `params.yaml` file.
 - `request_timeout`: Integer, timeout in seconds for HTTP requests to retrieve list of videos of a channel and get transcriptions from a video.
 - `chunk_size`: Integer, the maximum number of words in a chunk, used to split transcriptions in chunks.
 - `chunk_overlap`: Integer, the number of words to overlap between chunks.
-- `embedding_size`: Integer. This value represents the dimensionality of the embeddings provided by the chosen model and determines the size of the embedding array column in the `chunk` table.
+- `embedding_size`: Integer, it represents the dimensionality of the embeddings provided by the chosen model and determines the size of the embedding array column in the `chunk` table.
 - `embedding_model_name`: String, the name of the model used to compute the embeddings, it must be a model supported by [`ollama`](https://ollama.com/search?c=embedding).
 - `embedding_num_ctx`: String, size of the context window used to generate the next token, must not be greater than the maximum context window size of the model.
 - `index_hnsm_m`: Integer, `m` parameter of the HNSW index.
@@ -238,7 +238,7 @@ References:
 - [Traefik environment variables](https://doc.traefik.io/traefik/reference/static-configuration/env/)
 - [Create Cloudflare API token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/)
 
-# Orquestration
+# Orchestration
 
 Run the following command to start the services:
 
