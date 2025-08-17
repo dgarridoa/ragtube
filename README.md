@@ -2,8 +2,17 @@
 
 RAGTube is a Retrieval Augmented Generation (RAG) application that lets you query transcriptions from your favorite YouTubers. It retrieves the most relevant transcription chunks for your query and provides them as context to a large language model (LLM) to generate responses.
 
-Showcase https://ragtube.dgarridoa.xyz/
-![](./docs/chat_example.png)
+> **✨ New!** RAGTube now features a modern **shadcn/ui frontend** alongside the original Streamlit interface. The new frontend offers enhanced UX with real-time chat, YouTube video embedding, and beautiful responsive design.
+
+🌐 **Live Demo:** https://ragtube.dgarridoa.xyz/
+📖 **Frontend Documentation:** [frontend/README.md](frontend/README.md)
+
+**Modern shadcn/ui Interface (Recommended):**
+![](./docs/shadcn_chat_example.png)
+
+**Legacy Streamlit Interface:**
+![](./docs/streamlit_chat_example.png)
+
 
 # Arquitecture
 
@@ -11,13 +20,17 @@ Showcase https://ragtube.dgarridoa.xyz/
 
 • Ollama: To serve a local embedding and language model. It generates embeddings for text (transcriptions chunks and queries) and for generating responses based on the query and its corresponding contextual information provided by the retriever.
 
-• Backend: Built using FastAPI, the backend layer exposes endpoints for readiness checks, listing channels, and handling RAG queries. This API communicates with both the database (to fetch data), and Ollama (to generate embeddings and chat completions). The RAG endpoint retrieve most relevant chunks, rerank them using FlashRank and filter them and finally pass them to the chat model to generate responses.
+• Backend: Built using FastAPI, the backend layer exposes endpoints for readiness checks, listing channels, and handling RAG queries. This API communicates with both the database (to fetch data), and Ollama (to generate embeddings and chat completions). The RAG endpoint retrieves the most relevant chunks, reranks them using FlashRank and filters them, and finally passes them to the chat model to generate responses.
 
-• Frontend: The application’s user interface is built with Streamlit, which interacts with the FastAPI backend. It provides users with a way to ask questions and view search results and generated responses.
+• Frontend: RAGTube offers two user interface options:
+  - **[Modern Frontend (Recommended)](frontend/README.md)**: A beautiful, responsive interface built with **shadcn/ui**, **Vite**, and **Vanilla JavaScript**. Features real-time chat, YouTube video embedding, dark/light themes, and modern UX patterns.
+  - **Legacy Frontend**: A Streamlit-based interface (maintained for compatibility).
+
+  The shadcn/ui frontend provides a superior user experience and is the recommended choice.
 
 • CLI and Database Tools: A Typer-based command line interface is provided for database population. It downloads transcriptions, split them into chunks, computes their embeddings and create the HNSW index if does not exist.
 
-• Containerization & Deployment: Docker Compose is used to orchestrate the entire application stack including the PostgreSQL database, Ollama (for model serving), FastAPI (banckend), Streamlit (frontend), and additional services such as Watchtower for automated rolling releases and Traefik as a reverse proxy with SSL handling.
+• Containerization & Deployment: Docker Compose is used to orchestrate the entire application stack including the PostgreSQL database, Ollama (for model serving), FastAPI (backend), modern shadcn/ui frontend, and additional services such as Watchtower for automated rolling releases and Traefik as a reverse proxy with SSL handling.
 
 ```mermaid
 sequenceDiagram
@@ -178,17 +191,61 @@ curl http://localhost:5000/rag?input=What%20does%20Harpoon%3F&channel_id=UCSHZKy
 
 # Frontend
 
-To start the frontend run the following command:
+RAGTube provides two frontend options:
+
+## Modern Frontend (Recommended) 🚀
+
+A beautiful, responsive interface built with **shadcn/ui** and modern web technologies.
+
+**Features:**
+- 🎨 Beautiful shadcn/ui design system
+- 💬 Real-time chat with streaming responses
+- 📺 Embedded YouTube video player
+- 🌙 Dark/light theme support
+- 📱 Fully responsive design
+- ⚡ Fast Vite development server
+
+**Quick Start:**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Access at [http://localhost:8501](http://localhost:8501)
+
+📖 **[Complete Frontend Documentation](frontend/README.md)**
+
+## Legacy Frontend (Streamlit)
+
+For compatibility, the original Streamlit interface is still available:
 
 ```bash
 uv run python -m streamlit run ragtube/ui.py
 ```
 
-You can now access the application at [http://localhost:8501](http://localhost:8501).
+Access at [http://localhost:8501](http://localhost:8501)
 
 # CI/CD
 
-The pull request will trigger the pipeline detailed in the `.github/workflows/onpr.yaml` file.  These steps are: Starts a PostgreSQL container using Docker, checkout the branch from the repository, create the `.env-test` file, set up Python 3.11, install uv, install project dependencies, run pre-commit checks, execute unit tests, and build and publish both the `ragtube` and `ollama` Docker images.
+The pull request will trigger the pipeline detailed in the `.github/workflows/onpr.yaml` file. The pipeline includes:
+
+**Backend Testing:**
+- PostgreSQL container setup
+- Python 3.11 environment with uv
+- Pre-commit hooks validation
+- Unit tests with coverage reports
+
+**Frontend Testing:**
+- Node.js 18 environment setup
+- NPM dependency installation
+- Code formatting validation (Prettier)
+
+**Docker Image Building:**
+- Multi-platform builds (AMD64 + ARM64)
+- Three Docker images: `ragtube`, `ollama`, and `ragtube-frontend`
+- Automatic tagging with commit SHA
+- Publishing to Docker Hub and GitHub Container Registry
 
 As prerequisites, you should have the following [Github Secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions) set up in your repository:
 - `YOUTUBE_API_KEY`
@@ -198,12 +255,13 @@ As prerequisites, you should have the following [Github Secrets](https://docs.gi
 , and set the `DOCKER_HUB_USERNAME` repository variable.
 
 Docker images:
-- https://hub.docker.com/repository/docker/dgarridoa/ragtube/general
-- https://hub.docker.com/repository/docker/dgarridoa/ollama/general
+- https://hub.docker.com/repository/docker/dgarridoa/ragtube/general (Backend)
+- https://hub.docker.com/repository/docker/dgarridoa/ragtube-frontend/general (Frontend)
+- https://hub.docker.com/repository/docker/dgarridoa/ollama/general (Ollama)
 
 # Rolling Release
 
-Watchtower is used to automatically update the Docker containers when a new image is available. It is setup in the `docker-compose.yaml` file. When the CI/CD completes the container that uses the `ragtube` and `ollama` images are updated.
+Watchtower is used to automatically update the Docker containers when a new image is available. It is setup in the `docker-compose.yaml` file. When the CI/CD completes, containers using the `ragtube`, `ragtube-frontend`, and `ollama` images are automatically updated.
 
 # Ingress
 

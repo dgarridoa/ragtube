@@ -100,11 +100,11 @@ services:
       start_period: 300s
       timeout: 10s
   ui:
-    image: dgarridoa/ragtube:latest
+    image: dgarridoa/ragtube-frontend:latest
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
       - "traefik.enable=true"
-      - "traefik.http.routers.ui-http.rule=Host(`UI_HOST`)"
+      - "traefik.http.routers.ui-http.rule=Host(`$UI_HOST`)"
       - "traefik.http.routers.ui-http.entrypoints=web"
       - "traefik.http.routers.ui-https.rule=Host(`$UI_HOST`)"
       - "traefik.http.routers.ui-https.tls=true"
@@ -114,19 +114,10 @@ services:
     depends_on:
       api:
         condition: service_healthy
-    command:
-      - "uv"
-      - "run"
-      - "python"
-      - "-m"
-      - "streamlit"
-      - "run"
-      - "ragtube/ui.py"
     ports:
       - 8501:8501
     environment:
-      UI_HOST: ${UI_HOST}
-    env_file: ".env"
+      - NODE_ENV=production
 volumes:
   postgres_data:
   ollama:

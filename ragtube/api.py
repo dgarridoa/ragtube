@@ -5,6 +5,7 @@ from typing import Annotated, Generator
 
 import requests
 from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBasic
 from pydantic import BaseModel, Field
@@ -78,6 +79,14 @@ class RAGError(Exception):
 
 app = FastAPI()
 security = HTTPBasic()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8501", "http://127.0.0.1:8501"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/readiness")
