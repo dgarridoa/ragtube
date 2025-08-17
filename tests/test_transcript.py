@@ -153,7 +153,7 @@ def test_get_video_captions(settings: Settings):
         "Guy5D3PJlZk",
         language="en",
         timeout=60,
-        proxies={"https": settings.https_proxy.get_secret_value()}
+        proxies={"https_url": settings.https_proxy.get_secret_value()}
         if settings.https_proxy is not None
         else None,
     )
@@ -167,7 +167,7 @@ def test_video_transcript_task(engine: Engine, settings: Settings):
         language="en",
         timeout=60,
         api_key=settings.youtube_api_key.get_secret_value(),
-        proxies={"https": settings.https_proxy.get_secret_value()}
+        proxies={"https_url": settings.https_proxy.get_secret_value()}
         if settings.https_proxy is not None
         else None,
     )
