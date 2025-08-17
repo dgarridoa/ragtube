@@ -29,7 +29,7 @@ def update_index(
     params = get_params()
     engine = setting_engine()
     proxies = (
-        {"https": settings.https_proxy.get_secret_value()}
+        {"https_url": settings.https_proxy.get_secret_value()}
         if settings.https_proxy
         else None
     )
