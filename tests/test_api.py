@@ -11,7 +11,6 @@ from langchain_core.language_models import (
 from sqlalchemy.engine import Engine
 from sqlmodel import Session
 
-from ragtube.api import app
 from ragtube.database import get_session
 from ragtube.models import Channel, Chunk, Video
 from ragtube.rag import create_rag_chain, get_rag_chain
@@ -126,6 +125,8 @@ def get_rag_chain_fixture(engine: Engine):
 
 @pytest.fixture(name="client")
 def client_fixture(session: Session, get_rag_chain_override):
+    from ragtube.api import app
+
     create_chunk_table(session)
     app.dependency_overrides[get_session] = lambda: session
     app.dependency_overrides[get_rag_chain] = get_rag_chain_override

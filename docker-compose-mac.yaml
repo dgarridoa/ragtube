@@ -18,6 +18,7 @@ services:
       - TRAEFIK_CERTIFICATESRESOLVERS_CLOUDFLARE_ACME_EMAIL=${TRAEFIK_CERTIFICATESRESOLVERS_CLOUDFLARE_ACME_EMAIL}
     ports:
       - "80:80"
+      - "443:443"
       - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -60,6 +61,20 @@ services:
     image: dgarridoa/ragtube:latest
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-http.rule=Host(`$HOSTNAME`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api-http.entrypoints=web"
+      - "traefik.http.routers.api-http.priority=2"
+      - "traefik.http.routers.api-http.middlewares=api-stripprefix"
+      - "traefik.http.routers.api-https.rule=Host(`$HOSTNAME`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api-https.tls=true"
+      - "traefik.http.routers.api-https.tls.certresolver=cloudflare"
+      - "traefik.http.routers.api-https.entrypoints=websecure"
+      - "traefik.http.routers.api-https.priority=2"
+      - "traefik.http.routers.api-https.middlewares=api-stripprefix"
+      - "traefik.http.services.api.loadbalancer.server.port=5000"
+      - "traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api"
+      - "traefik.http.middlewares.api-stripprefix.stripprefix.forceSlash=false"
     container_name: ragtube-api
     depends_on:
       db-init:
@@ -75,8 +90,8 @@ services:
       - "5000"
       - "--log-config"
       - "log_config.yaml"
-    ports:
-      - 5000:5000
+      - "--root-path"
+      - "/api"
     env_file: ".env"
     environment:
       - OLLAMA_HOST=http://host.docker.internal:11434
@@ -87,32 +102,26 @@ services:
       start_period: 300s
       timeout: 10s
   ui:
-    image: dgarridoa/ragtube:latest
+    image: dgarridoa/ragtube-frontend:latest
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
       - "traefik.enable=true"
-      - "traefik.http.routers.ui-http.rule=Host(`UI_HOST`)"
+      - "traefik.http.routers.ui-http.rule=Host(`$HOSTNAME`)"
       - "traefik.http.routers.ui-http.entrypoints=web"
-      - "traefik.http.routers.ui-https.rule=Host(`$UI_HOST`)"
+      - "traefik.http.routers.ui-http.priority=1"
+      - "traefik.http.routers.ui-https.rule=Host(`$HOSTNAME`)"
       - "traefik.http.routers.ui-https.tls=true"
       - "traefik.http.routers.ui-https.tls.certresolver=cloudflare"
       - "traefik.http.routers.ui-https.entrypoints=websecure"
+      - "traefik.http.routers.ui-https.priority=1"
     container_name: ragtube-ui
     depends_on:
       api:
         condition: service_healthy
-    command:
-      - "uv"
-      - "run"
-      - "python"
-      - "-m"
-      - "streamlit"
-      - "run"
-      - "ragtube/ui.py"
     ports:
       - 8501:8501
     environment:
-      UI_HOST: ${UI_HOST}
-    env_file: ".env"
+      - NODE_ENV=production
+      - HOSTNAME=${HOSTNAME}
 volumes:
   postgres_data:
