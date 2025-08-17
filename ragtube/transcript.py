@@ -8,6 +8,7 @@ from sqlmodel import Session, col, select
 from tqdm import tqdm
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import CouldNotRetrieveTranscript
+from youtube_transcript_api.proxies import GenericProxyConfig
 
 from ragtube.models import Caption, Channel, Video
 from ragtube.utils import timeout_handler
@@ -96,12 +97,20 @@ def get_video_captions(
         error_message = (
             f"\nCould not retrieve a transcript for the video {video_url}!"
         )
+        proxy_config = None
+        if proxies is not None:
+            proxy_config = GenericProxyConfig(**proxies)
+        client = YouTubeTranscriptApi(proxy_config=proxy_config)
         try:
-            captions = YouTubeTranscriptApi.get_transcript(
-                video_id, languages=[language], proxies=proxies
-            )
+            fetched_transcript = client.fetch(video_id, languages=[language])
             captions = [
-                Caption(**caption, video_id=video_id) for caption in captions
+                Caption(
+                    text=caption.text,
+                    start=caption.start,
+                    duration=caption.duration,
+                    video_id=video_id,
+                )
+                for caption in fetched_transcript.snippets
             ]
             return captions
         except CouldNotRetrieveTranscript as e:
