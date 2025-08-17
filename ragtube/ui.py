@@ -8,9 +8,16 @@ from ragtube.settings import get_settings
 from ragtube.transcript import WATCH_URL
 
 settings = get_settings()
-API_URL = "http://{}:{}".format(
-    settings.api_host.get_secret_value(), settings.api_port.get_secret_value()
-)
+
+
+def get_api_url():
+    hostname = settings.hostname.get_secret_value()
+    if hostname == "localhost":
+        return "http://localhost:5000"
+    return f"https://{hostname}/api"
+
+
+API_URL = get_api_url()
 
 
 st.title("💬 Chatbot")

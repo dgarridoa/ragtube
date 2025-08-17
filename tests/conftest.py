@@ -30,8 +30,10 @@ def mock_get_embedding_model():
 
 
 @pytest.fixture(scope="session", autouse=True)
-def settings() -> Settings:
-    return Settings(_env_file=".env-test")  # type: ignore
+def settings() -> Generator[Settings, None, None]:
+    test_settings = Settings(_env_file=".env-test")  # type: ignore
+    with patch("ragtube.settings.get_settings", return_value=test_settings):
+        yield test_settings
 
 
 @pytest.fixture

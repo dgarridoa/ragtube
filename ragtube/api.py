@@ -5,6 +5,7 @@ from typing import Annotated, Generator
 
 import requests
 from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBasic
 from pydantic import BaseModel, Field
@@ -78,6 +79,25 @@ class RAGError(Exception):
 
 app = FastAPI()
 security = HTTPBasic()
+
+
+def get_allowed_origins() -> list[str]:
+    from ragtube.settings import get_settings
+
+    settings = get_settings()
+    hostname = settings.hostname.get_secret_value()
+    if hostname == "localhost":
+        return ["http://localhost:8501"]
+    return [f"https://{hostname}"]
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=get_allowed_origins(),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/readiness")
