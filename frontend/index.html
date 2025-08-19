@@ -3,7 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
     <title>RAGTube - AI-Powered YouTube Chat</title>
     <meta
       name="description"
@@ -15,23 +18,23 @@
       <!-- Header - ChatGPT style with channel selector -->
       <header class="sticky top-0 z-40 bg-background">
         <div
-          class="flex h-12 items-center justify-between px-4 max-w-4xl mx-auto"
+          class="flex h-14 sm:h-12 items-center justify-between px-3 sm:px-4 max-w-4xl mx-auto"
         >
-          <div class="flex items-center space-x-3">
+          <div class="flex items-center space-x-2 sm:space-x-3">
             <div
-              class="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg flex items-center justify-center"
+              class="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg flex items-center justify-center"
             >
-              <span class="text-white font-bold text-sm">RT</span>
+              <span class="text-white font-bold text-xs sm:text-sm">RT</span>
             </div>
             <div>
-              <h1 class="text-lg font-semibold">RAGTube</h1>
-              <p class="text-xs text-muted-foreground">
+              <h1 class="text-base sm:text-lg font-semibold">RAGTube</h1>
+              <p class="text-xs text-muted-foreground hidden sm:block">
                 AI-Powered YouTube Chat
               </p>
             </div>
           </div>
 
-          <div class="flex items-center space-x-3">
+          <div class="flex items-center space-x-2 sm:space-x-3">
             <!-- Channel Selector in header -->
             <div id="channel-selector">
               <!-- Channel selector will be inserted here -->
@@ -40,7 +43,7 @@
             <!-- Theme Toggle -->
             <button
               id="theme-toggle"
-              class="p-2 rounded-md hover:bg-accent transition-colors"
+              class="p-1.5 sm:p-2 rounded-md hover:bg-accent transition-colors"
             >
               <svg
                 class="w-4 h-4"
@@ -63,7 +66,7 @@
       <!-- Main Content - ChatGPT style full-width -->
       <div class="flex-1 flex flex-col">
         <!-- Chat Area -->
-        <main id="chat-main" class="flex-1 max-w-4xl w-full mx-auto">
+        <main id="chat-main" class="flex-1 max-w-4xl w-full mx-auto min-h-0">
           <!-- Chat interface will be inserted here -->
         </main>
       </div>
