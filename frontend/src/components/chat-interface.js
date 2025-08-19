@@ -6,16 +6,19 @@ import { formatTime, formatDate } from '../utils/helpers.js'
 
 export function createChatInterface(apiClient) {
   const container = document.createElement('div')
-  container.className = 'flex-1 flex flex-col'
+  container.className = 'flex-1 flex flex-col min-h-0'
 
-  // Messages container - ChatGPT style with no card styling
+  // Messages container - Direct scroll without scroll area component
   const messagesArea = document.createElement('div')
-  messagesArea.className = 'flex-1 overflow-hidden'
+  messagesArea.className = 'flex-1 overflow-auto'
+  messagesArea.style.height = '100%'
+  messagesArea.style.maxHeight = 'none'
 
-  const messagesScrollArea = createScrollArea({ className: 'h-full' })
   const messagesContainer = document.createElement('div')
-  messagesContainer.className = 'space-y-0'
+  messagesContainer.className = 'space-y-0 p-4'
   messagesContainer.id = 'messages-container'
+  messagesContainer.style.minHeight = 'auto'
+  messagesContainer.style.height = 'auto'
 
   // Add welcome message
   const welcomeMessage = createMessage({
@@ -26,12 +29,11 @@ export function createChatInterface(apiClient) {
   })
   messagesContainer.appendChild(welcomeMessage)
 
-  messagesScrollArea.appendChild(messagesContainer)
-  messagesArea.appendChild(messagesScrollArea)
+  messagesArea.appendChild(messagesContainer)
 
-  // Input area - ChatGPT style minimal with consistent background
+  // Input area - Responsive ChatGPT style
   const inputArea = document.createElement('div')
-  inputArea.className = 'px-4 py-4'
+  inputArea.className = 'px-3 sm:px-4 py-3 sm:py-4'
 
   const inputContainer = document.createElement('div')
   inputContainer.className = 'max-w-4xl mx-auto'
@@ -42,7 +44,7 @@ export function createChatInterface(apiClient) {
   const messageInput = document.createElement('textarea')
   messageInput.placeholder = 'Ask anything about the YouTube videos...'
   messageInput.className =
-    'w-full min-h-[50px] max-h-[200px] rounded-lg border border-input bg-background px-4 py-3 pr-12 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none'
+    'w-full min-h-[44px] sm:min-h-[50px] max-h-[200px] rounded-lg border border-input bg-background px-3 sm:px-4 py-2.5 sm:py-3 pr-10 sm:pr-12 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none'
   messageInput.id = 'message-input'
   messageInput.rows = 1
   messageInput.style.resize = 'none'
@@ -51,7 +53,8 @@ export function createChatInterface(apiClient) {
     type: 'submit',
     variant: 'default',
     size: 'icon',
-    className: 'absolute right-2 bottom-2 h-8 w-8 rounded-full',
+    className:
+      'absolute right-1.5 sm:right-2 bottom-1.5 sm:bottom-2 h-7 w-7 sm:h-8 sm:w-8 rounded-full',
     children: createSendIcon(),
   })
 
@@ -171,10 +174,7 @@ export function createChatInterface(apiClient) {
   })
 
   function scrollToBottom() {
-    const viewport = messagesScrollArea.querySelector('.scroll-area-viewport')
-    if (viewport) {
-      viewport.scrollTop = viewport.scrollHeight
-    }
+    messagesArea.scrollTop = messagesArea.scrollHeight
   }
 
   function updateLoadingState(loading) {
@@ -201,13 +201,13 @@ function createMessage({
   context = null,
   isError = false,
 }) {
-  // ChatGPT-style message container - alternating background colors
+  // Responsive ChatGPT-style message container
   const messageDiv = document.createElement('div')
-  messageDiv.className = `px-4 py-6 ${role === 'assistant' ? 'bg-muted/30' : ''}`
+  messageDiv.className = `px-3 sm:px-4 py-4 sm:py-6 ${role === 'assistant' ? 'bg-muted/30' : ''}`
 
-  // Inner container with max width
+  // Inner container with max width and responsive spacing
   const innerContainer = document.createElement('div')
-  innerContainer.className = 'max-w-4xl mx-auto flex space-x-4'
+  innerContainer.className = 'max-w-4xl mx-auto flex space-x-3 sm:space-x-4'
 
   // Avatar
   const avatar = createAvatar({ className: 'h-8 w-8 shrink-0' })
@@ -253,12 +253,12 @@ function createMessage({
 }
 
 function createTypingIndicator() {
-  // ChatGPT-style typing indicator
+  // Responsive ChatGPT-style typing indicator
   const messageDiv = document.createElement('div')
-  messageDiv.className = 'px-4 py-6 bg-muted/30'
+  messageDiv.className = 'px-3 sm:px-4 py-4 sm:py-6 bg-muted/30'
 
   const innerContainer = document.createElement('div')
-  innerContainer.className = 'max-w-4xl mx-auto flex space-x-4'
+  innerContainer.className = 'max-w-4xl mx-auto flex space-x-3 sm:space-x-4'
 
   const avatar = createAvatar({ className: 'h-8 w-8 shrink-0' })
   const avatarFallback = createAvatarFallback({
@@ -285,11 +285,13 @@ function createTypingIndicator() {
 }
 
 function createContextDisplay(context) {
-  const contextCard = createCard({ className: 'mt-3' })
+  // Create a simple div instead of using card component to avoid constraints
+  const contextCard = document.createElement('div')
+  contextCard.className = 'mt-3 bg-card border rounded-lg overflow-visible'
 
   const header = document.createElement('div')
   header.className =
-    'px-4 py-2 bg-muted/50 rounded-t-lg border-b cursor-pointer flex items-center justify-between'
+    'px-3 sm:px-4 py-2 bg-muted/50 rounded-t-lg border-b cursor-pointer flex items-center justify-between'
   header.innerHTML = `
     <span class="text-sm font-medium">Retrieved Context (${context.length} sources)</span>
     <svg class="w-4 h-4 transition-transform context-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -298,31 +300,38 @@ function createContextDisplay(context) {
   `
 
   const content = document.createElement('div')
-  content.className = 'hidden context-content p-4 space-y-6'
+  content.className =
+    'hidden context-content p-2 sm:p-4 space-y-3 sm:space-y-6 overflow-hidden'
+  content.style.maxHeight = 'none'
+  content.style.height = 'auto'
 
   context.forEach((doc, index) => {
     const sourceDiv = document.createElement('div')
-    sourceDiv.className = 'bg-card border rounded-lg overflow-hidden'
+    sourceDiv.className = 'bg-card border rounded-lg'
+    sourceDiv.style.overflow = 'visible'
 
-    // Main content container - side by side layout
+    // Main content container - mobile-first responsive layout
     const mainContent = document.createElement('div')
-    mainContent.className = 'flex gap-4 p-4'
+    mainContent.className =
+      'flex flex-col sm:flex-row gap-2 sm:gap-4 p-2 sm:p-4'
 
     // Left side - Transcript content (flex-1 to take most space)
     const leftSide = document.createElement('div')
-    leftSide.className = 'flex-1 space-y-3'
+    leftSide.className = 'flex-1 space-y-2 sm:space-y-3 min-w-0 overflow-hidden'
 
     // Title and publish time
     const titleContainer = document.createElement('div')
-    titleContainer.className = 'flex items-start justify-between gap-2'
+    titleContainer.className =
+      'flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-2'
 
     const titleDiv = document.createElement('div')
-    titleDiv.className = 'font-medium text-sm flex-1 flex items-center gap-2'
+    titleDiv.className =
+      'font-medium text-sm flex-1 flex items-start gap-2 min-w-0'
     titleDiv.innerHTML = `
-      <svg class="w-4 h-4 text-red-500 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+      <svg class="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
         <path d="M21.593 7.203a2.506 2.506 0 0 0-1.762-1.766C18.265 5.007 12 5 12 5s-6.264-.007-7.831.404a2.56 2.56 0 0 0-1.766 1.778c-.413 1.566-.417 4.814-.417 4.814s-.004 3.264.406 4.814c.23.857.905 1.534 1.763 1.765 1.582.43 7.83.437 7.83.437s6.265.007 7.831-.403a2.515 2.515 0 0 0 1.767-1.763c.414-1.565.417-4.812.417-4.812s.02-3.265-.407-4.831zM9.996 15.005l.005-6 5.207 3.005-5.212 2.995z"/>
       </svg>
-      <span>${doc.title}</span>
+      <span class="break-words leading-tight">${doc.title}</span>
     `
 
     const publishTimeDiv = document.createElement('div')
@@ -339,7 +348,7 @@ function createContextDisplay(context) {
     transcriptLabel.textContent = 'Transcript'
 
     const contentDiv = document.createElement('div')
-    contentDiv.className = 'text-sm text-muted-foreground'
+    contentDiv.className = 'text-sm text-muted-foreground break-words'
 
     // Create expandable content
     const maxLength = 200
@@ -350,7 +359,7 @@ function createContextDisplay(context) {
       const remainingText = doc.content.slice(maxLength)
 
       const contentSpan = document.createElement('span')
-      contentSpan.className = 'whitespace-pre-wrap'
+      contentSpan.className = 'whitespace-pre-wrap break-words'
       contentSpan.textContent = truncatedText
 
       const ellipsisSpan = document.createElement('span')
@@ -360,7 +369,7 @@ function createContextDisplay(context) {
       ellipsisSpan.title = 'Click to expand'
 
       const hiddenSpan = document.createElement('span')
-      hiddenSpan.className = 'hidden whitespace-pre-wrap'
+      hiddenSpan.className = 'hidden whitespace-pre-wrap break-words'
       hiddenSpan.textContent = remainingText
 
       const collapseSpan = document.createElement('span')
@@ -389,7 +398,8 @@ function createContextDisplay(context) {
       contentDiv.appendChild(hiddenSpan)
       contentDiv.appendChild(collapseSpan)
     } else {
-      contentDiv.className = 'text-sm text-muted-foreground whitespace-pre-wrap'
+      contentDiv.className =
+        'text-sm text-muted-foreground whitespace-pre-wrap break-words'
       contentDiv.textContent = doc.content
     }
 
@@ -397,12 +407,14 @@ function createContextDisplay(context) {
     leftSide.appendChild(transcriptLabel)
     leftSide.appendChild(contentDiv)
 
-    // Right side - Video container (thumbnail or embedded video)
+    // Right side - Video container (mobile-optimized)
     const rightSide = document.createElement('div')
-    rightSide.className = 'w-48 shrink-0'
+    rightSide.className =
+      'w-full max-w-xs mx-auto sm:max-w-none sm:w-48 sm:shrink-0 sm:mx-0'
 
     const videoContainer = document.createElement('div')
-    videoContainer.className = 'relative w-full h-28 rounded-lg overflow-hidden'
+    videoContainer.className =
+      'relative w-full h-40 sm:h-28 rounded-lg overflow-hidden'
 
     // YouTube thumbnail - clickable to show embedded video
     const thumbnail = document.createElement('div')
@@ -482,7 +494,7 @@ function createContextDisplay(context) {
     content.appendChild(sourceDiv)
   })
 
-  // Toggle functionality
+  // Mobile-optimized toggle functionality
   header.addEventListener('click', () => {
     const isHidden = content.classList.contains('hidden')
     const chevron = header.querySelector('.context-chevron')
@@ -490,6 +502,29 @@ function createContextDisplay(context) {
     if (isHidden) {
       content.classList.remove('hidden')
       chevron.style.transform = 'rotate(180deg)'
+
+      // Direct scroll behavior - no more scroll area constraints
+      setTimeout(() => {
+        const messagesArea =
+          document.getElementById('messages-container').parentElement
+        if (messagesArea) {
+          // Force scroll to show the expanded context
+          const contextRect = contextCard.getBoundingClientRect()
+          const messagesRect = messagesArea.getBoundingClientRect()
+
+          // Calculate how much we need to scroll to show the full context
+          const contextBottom = contextRect.bottom
+          const messagesBottom = messagesRect.bottom
+
+          if (contextBottom > messagesBottom) {
+            const scrollAmount = contextBottom - messagesBottom + 50 // Extra padding
+            messagesArea.scrollBy({
+              top: scrollAmount,
+              behavior: 'smooth',
+            })
+          }
+        }
+      }, 100)
     } else {
       content.classList.add('hidden')
       chevron.style.transform = 'rotate(0deg)'

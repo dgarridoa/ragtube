@@ -5,7 +5,7 @@ export function createChannelSelector(apiClient) {
   const selectElement = createSelect({
     placeholder: 'All Channels',
     className:
-      'min-w-[140px] text-sm border-0 bg-transparent hover:bg-accent focus:bg-accent',
+      'min-w-[100px] sm:min-w-[120px] max-w-[130px] sm:max-w-[150px] text-xs sm:text-sm border-0 bg-transparent hover:bg-accent focus:bg-accent',
     onValueChange: value => {
       // Emit custom event when channel changes
       const event = new CustomEvent('channelChanged', {
