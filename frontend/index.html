@@ -12,6 +12,15 @@
       name="description"
       content="Query transcriptions from your favorite YouTubers using AI-powered RAG technology"
     />
+    <link rel="stylesheet" href="/src/styles/main.css" />
+    <script>
+      const theme =
+        localStorage.getItem('theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light')
+      if (theme === 'dark') document.documentElement.classList.add('dark')
+    </script>
   </head>
   <body>
     <div id="app" class="min-h-screen flex flex-col">
