@@ -3,20 +3,6 @@ export function initTheme() {
   const themeToggle = document.getElementById('theme-toggle')
   const htmlElement = document.documentElement
 
-  // Check for saved theme preference or default to system preference
-  const savedTheme = localStorage.getItem('theme')
-  const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? 'dark'
-    : 'light'
-  const currentTheme = savedTheme || systemTheme
-
-  // Apply initial theme
-  if (currentTheme === 'dark') {
-    htmlElement.classList.add('dark')
-  } else {
-    htmlElement.classList.remove('dark')
-  }
-
   // Theme toggle handler
   themeToggle?.addEventListener('click', () => {
     const isDark = htmlElement.classList.contains('dark')

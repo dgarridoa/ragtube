@@ -1,4 +1,3 @@
-import './styles/main.css'
 import { initTheme } from './utils/theme.js'
 import { createChannelSelector } from './components/channel-selector.js'
 import { createChatInterface } from './components/chat-interface.js'
