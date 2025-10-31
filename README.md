@@ -50,143 +50,28 @@ sequenceDiagram
     B->>F: Stream response
 ```
 
-# Install project
-
-First, install [uv](https://docs.astral.sh/uv/) a Python package and project manager.
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-Then install Python 3.11 and pin it.
-```bash
-uv python install 3.11
-uv pin 3.11
-```
-
-Finally, install the project.
-```bash
-uv sync --alll-extras
-```
-
-# Parameters
-
-Application parameters are defined in the `params.yaml` file.
-
-- `channel_id`: List of string, the channel IDs to download transcriptions from.
-- `language`: String, the language of the transcriptions.
-- `request_timeout`: Integer, timeout in seconds for HTTP requests to retrieve list of videos of a channel and get transcriptions from a video.
-- `chunk_size`: Integer, the maximum number of words in a chunk, used to split transcriptions in chunks.
-- `chunk_overlap`: Integer, the number of words to overlap between chunks.
-- `embedding_size`: Integer, it represents the dimensionality of the embeddings provided by the chosen model and determines the size of the embedding array column in the `chunk` table.
-- `embedding_model_name`: String, the name of the model used to compute the embeddings, it must be a model supported by [`ollama`](https://ollama.com/search?c=embedding).
-- `embedding_num_ctx`: String, size of the context window used to generate the next token, must not be greater than the maximum context window size of the model.
-- `index_hnsm_m`: Integer, `m` parameter of the HNSW index.
-- `index_hnsw_ef_construction`: Integer, `ef_construction` parameter of the HNSW index.
-- `index_hnsw_ef_search`: Integer, `ef_search` parameter of the HNSW index.
-- `index_vector_ops`: String, the name of the vector operations to use, it must be a vector operation supported by `pgvector`.
-- `results_to_retrieve`: Integer, the number of approximate nearest neighbors to retrieve from the HNSW index.
-- `rerank_model_name`: String, the name of the model used to rerank the results retrieve by the HNSW index, it must be a model supported by [`flashrank`](https://github.com/PrithivirajDamodaran/FlashRank).
-- `rerank_score_threshold`: Integer, the minimum rerank score required for a result from the HNSW index to be presented to the user.
-- `chat_model_name`: String, the name of the model used to generate responses based on a provided question and its corresponding retrieved context. The model must be one of those supported by [`ollama`](https://ollama.com/search?c=chat).
-- `chat_temperature`: Float, the temperature used to sample tokens from the chat model.
-- `chat_max_tokens`: Integer, the maximum number of tokens to generate from the chat model.
-
-# Environment file
-
-Ensure you have a `.env` file in the project's root directory. Obtain a YouTube API key— for more details, visit [this guide](https://developers.google.com/youtube/v3/getting-started). Optionally, if you're running this in a CI/CD pipeline or on a cloud provider prone to bot challenges, you might need to set an HTTP proxy. The file should look like the following:
-
-```bash
-YOUTUBE_API_KEY=<KEY>
-# HTTPS_PROXY=http://<user>:<password>@<host>:<port>
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_HOST=postgres
-DB_PORT=5432
-DB_NAME=postgres
-HOSTNAME=localhost
-```
-
-# Database
-
-To start a PostgreSQL container, with pgvector extension for vector store capabilities, run the following command:
-
-```bash
-docker run \
-    --name test-postgres \
-    -p 5432:5432 \
-    -d \
-    -e POSTGRES_HOST_AUTH_METHOD=trust \
-    pgvector/pgvector:pg16`
-```
-
-References:
-- [pgvector repository](https://github.com/pgvector/pgvector)
-- [pgvetor python SDK](https://github.com/pgvector/pgvector-python)
-
-# Run unit tests
-
-Create `.env-test` file as `.env` file mentioned in the previous section. Then you should run the following command:
-
-```bash
-uv run pytest
-```
-
-Note that you should have the database running.
-
-# Ollama
-
-Install [ollama](https://ollama.com/download), a tool that makes it easy to run open-source LLMs locally.
-
-Execute `run-ollama.sh` to start a server, which exposes a REST API for interact with downloaded models. It then downloads the models specified by the `chat_model_name` and `embedding_model_name` fields in the `params.yaml` file. For example:
-
-```bash
-ollama serve
-ollama pull llama3.2:3b
-ollama pull bge-large
-```
-
-## Use generate endpoint
-```bash
-curl http://host.docker.internal:11434/api/generate -d '{
-  "model": "llama3.2:3b",
-  "prompt": "Why is the sky blue?",
-  "stream": false
-}'
-```
-
-## Use embed endpoint
-```bash
-curl http://localhost:11434/api/embed -d '{
-  "model": "bge-large",
-  "input": "Llamas are members of the camelid family"
-}'
-```
-
-# Database population
-
-To populate the database, set the `channel_id` field in the `params.yaml` file with the channels for which you wish to download transcriptions. Then run a Typer based CLI through the following command:
-
-```bash
-uv run python -m ragtube.cli
-```
-
-This will create the `channel`, `video`, `caption`, and `chunk` tables. Their schemas are defined in the `models` module. It lists videos from a channel, downloads transcriptions from missing videos, chunks these transcriptions into smaller pieces, and computes their embeddings. Finally, an HNSW index is created if it does not already exist.
-
 # Backend
 
-To start the backend run the following command:
+A high-performance FastAPI service that powers retrieval and streaming chat.
 
+**Features:**
+- 🚦 Readiness probe at `/readiness`
+- 📚 Channel listing via `/channel`
+- 🔎 Vector retrieval (pgvector + HNSW) with optional `channel_id`
+- 🧠 Ollama integration for embeddings and chat
+- 📡 Streaming NDJSON responses from `/rag`
+- ⚙️ Config via root `params.yaml` and `.env`
+
+**Quick Start:**
 ```bash
+cd backend
+uv sync --alll-extras
 uv run uvicorn ragtube.api:app --host 0.0.0.0 --port 5000 --log-config log_config.yaml
 ```
-The Open API documentation can be found at [http:localhost:5000/docs](http:localhost:5000/docs). It have three endpoints:
-- `/readiness`: to verify the readiness of the API.
-- `/channel`: to get a list of channels.
-- `/rag`: to ask a question (`input`) to the RAG. Optionally, you can perform deep search in a specific channel suplying its `channel_id`.
 
-```bash
-curl http://localhost:5000/rag?input=What%20does%20Harpoon%3F&channel_id=UCSHZKyawb77ixDdsGog4iWA
-```
+Access at [http://localhost:5000](http://localhost:5000) · Docs at [http://localhost:5000/docs](http://localhost:5000/docs)
+
+📖 **[Complete Backend Documentation](backend/README.md)**
 
 # Frontend
 
