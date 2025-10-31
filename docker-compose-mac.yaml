@@ -57,6 +57,8 @@ services:
     env_file: ".env"
     environment:
       - OLLAMA_HOST=http://host.docker.internal:11434
+    volumes:
+      - ./params.yaml:/app/params.yaml:ro
   api:
     image: dgarridoa/ragtube:latest
     labels:
@@ -95,6 +97,8 @@ services:
     env_file: ".env"
     environment:
       - OLLAMA_HOST=http://host.docker.internal:11434
+    volumes:
+      - ./params.yaml:/app/params.yaml:ro
     healthcheck:
       test: ["CMD-SHELL", "curl --fail http://localhost:5000/readiness"]
       interval: 30s

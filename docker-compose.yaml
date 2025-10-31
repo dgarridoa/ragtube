@@ -55,6 +55,8 @@ services:
       - "-m"
       - "ragtube.cli"
     env_file: ".env"
+    volumes:
+      - ./params.yaml:/app/params.yaml:ro
   ollama:
     image: dgarridoa/ollama:latest
     labels:
@@ -62,6 +64,7 @@ services:
     container_name: ragtube-ollama
     volumes:
       - ollama:/root/.ollama
+      - ./params.yaml:/app/params.yaml:ro
     healthcheck:
       test: ["CMD-SHELL", "curl --fail http://localhost:11434"]
       interval: 10s
@@ -106,6 +109,8 @@ services:
       - "--root-path"
       - "/api"
     env_file: ".env"
+    volumes:
+      - ./params.yaml:/app/params.yaml:ro
     environment:
       - OLLAMA_HOST=http://ollama:11434
     healthcheck:
