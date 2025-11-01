@@ -42,6 +42,7 @@ frontend/pnpm-debug.log*
 mlruns/
 
 # Data
+postgres_data/
 *.json
 *.crc
 !project.json
