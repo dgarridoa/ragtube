@@ -46,6 +46,7 @@ mlruns/
 .env*
 
 # Data
+postgres_data/
 *.crc
 !project.json
 *.csv
