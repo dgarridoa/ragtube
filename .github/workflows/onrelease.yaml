@@ -15,6 +15,23 @@ jobs:
       id-token: write
 
     steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_PROXY_KEY }}
+          proxy_host: ${{ secrets.SSH_PROXY_HOST }}
+          proxy_port: ${{ secrets.SSH_PROXY_PORT }}
+          proxy_username: ${{ secrets.SSH_PROXY_USERNAME }}
+          proxy_key: ${{ secrets.SSH_PROXY_KEY }}
+          script: |
+            set -euo pipefail
+            cd ${{ secrets.DEPLOY_PATH }}
+            git fetch --tags --prune
+            git pull --ff-only
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
