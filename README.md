@@ -125,6 +125,10 @@ The pull request will trigger the pipeline detailed in the `.github/workflows/on
 - NPM dependency installation
 - Code formatting validation (Prettier)
 
+# Release
+
+When a tag is pushed the pipeline detailed in the `.github/workflows/onpr.yaml` file is triggered. The pipeline includes:
+
 **Docker Image Building:**
 - Multi-platform builds (AMD64 + ARM64)
 - Three Docker images: `ragtube`, `ollama`, and `ragtube-frontend`
