@@ -61,6 +61,7 @@ export class APIClient {
 
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
+      let buffer = ''
 
       try {
         while (true) {
@@ -69,15 +70,29 @@ export class APIClient {
           if (done) break
 
           const chunk = decoder.decode(value, { stream: true })
-          const lines = chunk.split('\n').filter(line => line.trim())
+          buffer += chunk
+
+          const lines = buffer.split('\n')
+          buffer = lines.pop() || ''
 
           for (const line of lines) {
-            try {
-              const data = JSON.parse(line)
-              yield data
-            } catch (parseError) {
-              console.warn('Failed to parse JSON line:', line, parseError)
+            if (line.trim()) {
+              try {
+                const data = JSON.parse(line)
+                yield data
+              } catch (parseError) {
+                console.warn('Failed to parse JSON line:', line, parseError)
+              }
             }
+          }
+        }
+
+        if (buffer.trim()) {
+          try {
+            const data = JSON.parse(buffer)
+            yield data
+          } catch (parseError) {
+            console.warn('Failed to parse final JSON line:', buffer, parseError)
           }
         }
       } finally {
