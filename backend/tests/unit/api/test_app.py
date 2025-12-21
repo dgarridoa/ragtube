@@ -169,6 +169,7 @@ def test_rag(client: TestClient):
                 "title": "Agile Manifesto",
                 "publish_time": "2024-08-09T16:03:23",
                 "content": "I often make this joke which is agile's a lot like communism you know people just keep not trying it correctly um what is",
+                "relevance_score": 0.0,
             },
             {
                 "id": 4,
@@ -176,6 +177,7 @@ def test_rag(client: TestClient):
                 "title": "Agile Manifesto",
                 "publish_time": "2024-08-09T16:03:23",
                 "content": "measurement to project an end date and tell everybody that's kind of it",
+                "relevance_score": 0.0,
             },
         ],
     }
