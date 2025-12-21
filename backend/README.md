@@ -72,13 +72,13 @@ A high-performance backend for RAGTube built with **FastAPI**, **SQLModel**, **p
 3. **Populate the database (CLI):**
 
    ```bash
-   uv run python -m ragtube.cli update_index
+   uv run python -m ragtube.cli.app update_index
    ```
 
 4. **Start the API:**
 
    ```bash
-   uv run uvicorn ragtube.api:app --host 0.0.0.0 --port 5000 --log-config log_config.yaml
+   uv run uvicorn ragtube.api.app:app --host 0.0.0.0 --port 5000 --log-config log_config.yaml
    ```
 
 5. **Open your browser:**
@@ -282,10 +282,10 @@ Arguments:
 Examples:
 ```bash
 # Use channel_id from params.yaml
-uv run python -m ragtube.cli update_index
+uv run python -m ragtube.cli.app update_index
 
 # Ingest specific channels
-uv run python -m ragtube.cli update_index UC_x5XG1OV2P6uZZ5FSM9Ttw UCsBjURrPoezykLs9EqgamOA
+uv run python -m ragtube.cli.app update_index UC_x5XG1OV2P6uZZ5FSM9Ttw UCsBjURrPoezykLs9EqgamOA
 
 # Re-run to update (idempotent - only processes missing data)
 docker compose run --rm db-init
