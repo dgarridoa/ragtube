@@ -3,6 +3,7 @@ channel_id:
   - UCd3dNckv1Za2coSaHGHl5aA # TJ DeVries
   - UCSHZKyawb77ixDdsGog4iWA # Lex Fridman
   - UC9x0AN7BWHpCDHSm9NiJFJQ # NetworkChuck
+  - "UCbRP3c757lWg9M-U7TyEkXA" # Theo - t3․gg
 language: en
 request_timeout: 60
 chunk_size: 500
