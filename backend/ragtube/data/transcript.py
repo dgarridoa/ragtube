@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from urllib.parse import urlparse
 
 import requests
 from requests.models import HTTPError
@@ -8,7 +9,10 @@ from sqlmodel import Session, col, select
 from tqdm import tqdm
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import CouldNotRetrieveTranscript
-from youtube_transcript_api.proxies import GenericProxyConfig
+from youtube_transcript_api.proxies import (
+    GenericProxyConfig,
+    WebshareProxyConfig,
+)
 
 from ragtube.core.models import Caption, Channel, Video
 from ragtube.core.utils import timeout_handler
@@ -85,6 +89,23 @@ def get_channel_videos(
     return videos
 
 
+def create_proxy_config(
+    proxies: dict,
+) -> GenericProxyConfig | WebshareProxyConfig:
+    proxy_url = proxies.get("https_url") or proxies.get("http_url")
+    if proxy_url and "webshare.io" in proxy_url:
+        parsed = urlparse(proxy_url)
+        if parsed.username and parsed.password:
+            username = parsed.username
+            if "-" in username:
+                username = username.split("-")[0]
+            return WebshareProxyConfig(
+                proxy_username=username,
+                proxy_password=parsed.password,
+            )
+    return GenericProxyConfig(**proxies)
+
+
 def get_video_captions(
     video_id: str,
     language: str = "en",
@@ -99,7 +120,8 @@ def get_video_captions(
         )
         proxy_config = None
         if proxies is not None:
-            proxy_config = GenericProxyConfig(**proxies)
+            proxy_config = create_proxy_config(proxies)
+
         client = YouTubeTranscriptApi(proxy_config=proxy_config)
         try:
             fetched_transcript = client.fetch(video_id, languages=[language])
