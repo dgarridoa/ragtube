@@ -59,6 +59,10 @@ class Document(BaseModel):
             ],
         ),
     ]
+    relevance_score: Annotated[
+        float,
+        Field(title="Relevance score", examples=[0.87345]),
+    ]
 
 
 class RAGOutput(BaseModel):
@@ -129,6 +133,9 @@ async def rag(
                         title=doc.metadata["title"],
                         publish_time=doc.metadata["publish_time"],
                         content=doc.page_content,
+                        relevance_score=float(
+                            doc.metadata.get("relevance_score", 0.0)
+                        ),
                     ).model_dump(mode="json")
                     for doc in message["context"]
                 ]
