@@ -334,12 +334,27 @@ function createContextDisplay(context) {
       <span class="break-words leading-tight">${doc.title}</span>
     `
 
+    // Metadata container for publish time and relevance score
+    const metadataDiv = document.createElement('div')
+    metadataDiv.className =
+      'flex flex-col sm:flex-row gap-1 sm:gap-2 text-xs text-muted-foreground shrink-0'
+
     const publishTimeDiv = document.createElement('div')
-    publishTimeDiv.className = 'text-xs text-muted-foreground shrink-0'
     publishTimeDiv.textContent = formatDate(doc.publish_time)
 
+    const relevanceScoreDiv = document.createElement('div')
+    relevanceScoreDiv.className = 'font-semibold text-foreground'
+    const score =
+      doc.relevance_score !== undefined && doc.relevance_score !== null
+        ? (doc.relevance_score * 100).toFixed(1)
+        : 'N/A'
+    relevanceScoreDiv.textContent = `Relevance: ${score}%`
+
+    metadataDiv.appendChild(publishTimeDiv)
+    metadataDiv.appendChild(relevanceScoreDiv)
+
     titleContainer.appendChild(titleDiv)
-    titleContainer.appendChild(publishTimeDiv)
+    titleContainer.appendChild(metadataDiv)
 
     // Transcript content
     const transcriptLabel = document.createElement('div')
