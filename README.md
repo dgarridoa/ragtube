@@ -66,7 +66,7 @@ A high-performance FastAPI service that powers retrieval and streaming chat.
 ```bash
 cd backend
 uv sync --alll-extras
-uv run uvicorn ragtube.api:app --host 0.0.0.0 --port 5000 --log-config log_config.yaml
+uv run uvicorn ragtube.api.app:app --host 0.0.0.0 --port 5000 --log-config log_config.yaml
 ```
 
 Access at [http://localhost:5000](http://localhost:5000) · Docs at [http://localhost:5000/docs](http://localhost:5000/docs)
@@ -105,7 +105,7 @@ Access at [http://localhost:8501](http://localhost:8501)
 For compatibility, the original Streamlit interface is still available:
 
 ```bash
-uv run python -m streamlit run ragtube/ui.py
+uv run python -m streamlit run ragtube/ui/app.py
 ```
 
 Access at [http://localhost:8501](http://localhost:8501)
