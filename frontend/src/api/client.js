@@ -15,6 +15,28 @@ export class APIClient {
     }
   }
 
+  reportError(error, context) {
+    if (error && error.name === 'AbortError') return
+    try {
+      fetch(`${this.baseURL}/log/client-error`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: error?.message || String(error),
+          stack: error?.stack || null,
+          url: typeof window !== 'undefined' ? window.location.href : null,
+          user_agent:
+            typeof navigator !== 'undefined' ? navigator.userAgent : null,
+          timestamp: new Date().toISOString(),
+          context: context || null,
+        }),
+        keepalive: true,
+      }).catch(err => console.warn('Failed to report client error:', err))
+    } catch (err) {
+      console.warn('Failed to report client error:', err)
+    }
+  }
+
   async checkReadiness() {
     try {
       const response = await fetch(`${this.baseURL}/readiness`)
@@ -24,6 +46,7 @@ export class APIClient {
       return await response.json()
     } catch (error) {
       console.error('Readiness check failed:', error)
+      this.reportError(error, 'checkReadiness')
       throw error
     }
   }
@@ -37,6 +60,7 @@ export class APIClient {
       return await response.json()
     } catch (error) {
       console.error('Failed to fetch channels:', error)
+      this.reportError(error, 'getChannels')
       throw error
     }
   }
@@ -102,6 +126,7 @@ export class APIClient {
     } catch (error) {
       if (error.name !== 'AbortError') {
         console.error('RAG stream error:', error)
+        this.reportError(error, 'streamRAGResponse')
       }
       throw error
     }

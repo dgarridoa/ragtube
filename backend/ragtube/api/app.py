@@ -81,6 +81,15 @@ class RAGError(Exception):
     response: dict = {}
 
 
+class ClientErrorReport(BaseModel):
+    message: str
+    stack: str | None = None
+    url: str | None = None
+    user_agent: str | None = None
+    timestamp: datetime | None = None
+    context: str | None = None
+
+
 app = FastAPI()
 security = HTTPBasic()
 
@@ -104,8 +113,25 @@ app.add_middleware(
 )
 
 
+logger = logging.getLogger("ragtube.api")
+
+
 @app.get("/readiness")
 async def readiness():
+    return {"status": "ok"}
+
+
+@app.post("/log/client-error")
+async def log_client_error(report: ClientErrorReport):
+    logger.warning(
+        "client error: %s | context=%s url=%s ua=%s",
+        report.message,
+        report.context,
+        report.url,
+        report.user_agent,
+    )
+    if report.stack:
+        logger.warning("client error stack:\n%s", report.stack)
     return {"status": "ok"}
 
 
