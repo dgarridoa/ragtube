@@ -278,7 +278,7 @@ function createMessage({
 
   // Message content container
   const contentContainer = document.createElement('div')
-  contentContainer.className = 'flex-1 space-y-3'
+  contentContainer.className = 'flex-1 min-w-0 space-y-3'
 
   // Message content - no bubble, just text
   const messageContent = document.createElement('div')
