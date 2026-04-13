@@ -3,6 +3,7 @@ import { createButton } from './ui/button.js'
 import { createScrollArea } from './ui/scroll-area.js'
 import { createAvatar, createAvatarFallback } from './ui/avatar.js'
 import { formatTime, formatDate } from '../utils/helpers.js'
+import { renderMarkdown } from '../utils/markdown.js'
 
 export function createChatInterface(apiClient) {
   const container = document.createElement('div')
@@ -114,17 +115,29 @@ export function createChatInterface(apiClient) {
       updateLoadingState(true)
 
       let assistantMessage = null
+      let answerBuffer = ''
       let contextDisplayed = false
+      let rafPending = false
+
+      const scheduleRender = () => {
+        if (rafPending || !assistantMessage) return
+        rafPending = true
+        requestAnimationFrame(() => {
+          rafPending = false
+          if (!assistantMessage) return
+          const contentElement =
+            assistantMessage.querySelector('.message-content')
+          contentElement.innerHTML = renderMarkdown(answerBuffer)
+          scrollToBottom()
+        })
+      }
 
       for await (const response of apiClient.streamRAGResponse(
         message,
         currentChannelId
       )) {
         if (response.context && !contextDisplayed) {
-          // Remove typing indicator
           typingIndicator.remove()
-
-          // Create assistant message with context
           assistantMessage = createMessage({
             role: 'assistant',
             content: '',
@@ -135,12 +148,16 @@ export function createChatInterface(apiClient) {
           contextDisplayed = true
           scrollToBottom()
         } else if (response.answer && assistantMessage) {
-          // Stream the answer
-          const contentElement =
-            assistantMessage.querySelector('.message-content')
-          contentElement.textContent += response.answer
-          scrollToBottom()
+          answerBuffer += response.answer
+          scheduleRender()
         }
+      }
+
+      if (assistantMessage) {
+        const contentElement =
+          assistantMessage.querySelector('.message-content')
+        contentElement.innerHTML = renderMarkdown(answerBuffer)
+        scrollToBottom()
       }
 
       if (!assistantMessage) {
@@ -229,7 +246,11 @@ function createMessage({
   messageContent.className = `message-content text-sm leading-relaxed ${
     isError ? 'text-destructive' : ''
   }`
-  messageContent.textContent = content
+  if (role === 'assistant' && !isError && content) {
+    messageContent.innerHTML = renderMarkdown(content)
+  } else {
+    messageContent.textContent = content
+  }
 
   // Timestamp - smaller and less prominent
   const timestampDiv = document.createElement('div')
