@@ -41,7 +41,7 @@ export class APIClient {
     }
   }
 
-  async *streamRAGResponse(input, channelId = null) {
+  async *streamRAGResponse(input, channelId = null, signal = null) {
     try {
       const params = new URLSearchParams({ input })
       if (channelId) {
@@ -53,6 +53,7 @@ export class APIClient {
         headers: {
           Accept: 'application/x-ndjson',
         },
+        signal,
       })
 
       if (!response.ok) {
@@ -99,7 +100,9 @@ export class APIClient {
         reader.releaseLock()
       }
     } catch (error) {
-      console.error('RAG stream error:', error)
+      if (error.name !== 'AbortError') {
+        console.error('RAG stream error:', error)
+      }
       throw error
     }
   }
