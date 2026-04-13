@@ -54,3 +54,6 @@ postgres_data/
 
 # Drawio
 *.drawio.bkp
+
+# Claude
+.claude/worktrees
