@@ -58,6 +58,7 @@ export function createChatInterface(apiClient) {
       'absolute right-1.5 sm:right-2 bottom-1.5 sm:bottom-2 h-7 w-7 sm:h-8 sm:w-8 rounded-full',
     children: createSendIcon(),
   })
+  sendButton.setAttribute('aria-label', 'Send')
 
   inputForm.appendChild(messageInput)
   inputForm.appendChild(sendButton)
@@ -70,17 +71,26 @@ export function createChatInterface(apiClient) {
   // State management
   let currentChannelId = null
   let isLoading = false
+  let abortController = null
 
   // Listen for channel changes
   document.addEventListener('channelChanged', event => {
     currentChannelId = event.detail.channelId
   })
 
-  // Handle Enter key in textarea (Ctrl+Enter or Cmd+Enter to send)
+  // Enter sends, Shift+Enter inserts a newline (standard chat UX)
   messageInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       inputForm.dispatchEvent(new Event('submit'))
+    }
+  })
+
+  // Click handler: send (when idle) or abort (when streaming)
+  sendButton.addEventListener('click', e => {
+    if (isLoading && abortController) {
+      e.preventDefault()
+      abortController.abort()
     }
   })
 
@@ -110,6 +120,8 @@ export function createChatInterface(apiClient) {
     messagesContainer.appendChild(typingIndicator)
     scrollToBottom()
 
+    abortController = new AbortController()
+
     try {
       isLoading = true
       updateLoadingState(true)
@@ -134,7 +146,8 @@ export function createChatInterface(apiClient) {
 
       for await (const response of apiClient.streamRAGResponse(
         message,
-        currentChannelId
+        currentChannelId,
+        abortController.signal
       )) {
         if (response.context && !contextDisplayed) {
           typingIndicator.remove()
@@ -156,7 +169,8 @@ export function createChatInterface(apiClient) {
       if (assistantMessage) {
         const contentElement =
           assistantMessage.querySelector('.message-content')
-        contentElement.innerHTML = renderMarkdown(answerBuffer)
+        const suffix = abortController.signal.aborted ? '\n\n_(stopped)_' : ''
+        contentElement.innerHTML = renderMarkdown(answerBuffer + suffix)
         scrollToBottom()
       }
 
@@ -172,20 +186,25 @@ export function createChatInterface(apiClient) {
         scrollToBottom()
       }
     } catch (error) {
-      console.error('Chat error:', error)
-      typingIndicator.remove()
+      if (error.name === 'AbortError') {
+        typingIndicator.remove()
+      } else {
+        console.error('Chat error:', error)
+        typingIndicator.remove()
 
-      const errorMessage = createMessage({
-        role: 'assistant',
-        content:
-          'I apologize, but I encountered an error while processing your request. Please try again.',
-        timestamp: new Date(),
-        isError: true,
-      })
-      messagesContainer.appendChild(errorMessage)
-      scrollToBottom()
+        const errorMessage = createMessage({
+          role: 'assistant',
+          content:
+            'I apologize, but I encountered an error while processing your request. Please try again.',
+          timestamp: new Date(),
+          isError: true,
+        })
+        messagesContainer.appendChild(errorMessage)
+        scrollToBottom()
+      }
     } finally {
       isLoading = false
+      abortController = null
       updateLoadingState(false)
     }
   })
@@ -195,13 +214,16 @@ export function createChatInterface(apiClient) {
   }
 
   function updateLoadingState(loading) {
-    sendButton.disabled = loading
     messageInput.disabled = loading
-
+    sendButton.innerHTML = ''
     if (loading) {
-      sendButton.classList.add('opacity-50', 'cursor-not-allowed')
+      sendButton.appendChild(createStopIcon())
+      sendButton.setAttribute('aria-label', 'Stop generating')
+      sendButton.title = 'Stop generating'
     } else {
-      sendButton.classList.remove('opacity-50', 'cursor-not-allowed')
+      sendButton.appendChild(createSendIcon())
+      sendButton.setAttribute('aria-label', 'Send')
+      sendButton.title = 'Send'
     }
   }
 
@@ -577,6 +599,17 @@ function createSendIcon() {
   const icon = document.createElement('span')
   icon.innerHTML = '↑'
   icon.className = 'text-base font-bold'
+  return icon
+}
+
+function createStopIcon() {
+  const icon = document.createElement('span')
+  icon.className = 'flex items-center justify-center'
+  icon.innerHTML = `
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+      <rect x="2" y="2" width="8" height="8" rx="1"/>
+    </svg>
+  `
   return icon
 }
 
