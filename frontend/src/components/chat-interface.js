@@ -5,6 +5,24 @@ import { createAvatar, createAvatarFallback } from './ui/avatar.js'
 import { formatTime, formatDate } from '../utils/helpers.js'
 import { renderMarkdown } from '../utils/markdown.js'
 
+const CONTEXT_PREF_KEY = 'ragtube:contextExpanded'
+
+function getContextPref() {
+  try {
+    return localStorage.getItem(CONTEXT_PREF_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+function setContextPref(expanded) {
+  try {
+    localStorage.setItem(CONTEXT_PREF_KEY, String(expanded))
+  } catch {
+    // localStorage unavailable; fail silently
+  }
+}
+
 export function createChatInterface(apiClient) {
   const container = document.createElement('div')
   container.className = 'flex-1 flex flex-col min-h-0'
@@ -332,19 +350,20 @@ function createContextDisplay(context) {
   const contextCard = document.createElement('div')
   contextCard.className = 'mt-3 bg-card border rounded-lg overflow-visible'
 
+  const startExpanded = getContextPref()
+
   const header = document.createElement('div')
   header.className =
     'px-3 sm:px-4 py-2 bg-muted/50 rounded-t-lg border-b cursor-pointer flex items-center justify-between'
   header.innerHTML = `
     <span class="text-sm font-medium">Retrieved Context (${context.length} sources)</span>
-    <svg class="w-4 h-4 transition-transform context-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg class="w-4 h-4 transition-transform context-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="transform: rotate(${startExpanded ? 180 : 0}deg)">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
     </svg>
   `
 
   const content = document.createElement('div')
-  content.className =
-    'hidden context-content p-2 sm:p-4 space-y-3 sm:space-y-6 overflow-hidden'
+  content.className = `${startExpanded ? '' : 'hidden '}context-content p-2 sm:p-4 space-y-3 sm:space-y-6 overflow-hidden`
   content.style.maxHeight = 'none'
   content.style.height = 'auto'
 
@@ -556,6 +575,7 @@ function createContextDisplay(context) {
   header.addEventListener('click', () => {
     const isHidden = content.classList.contains('hidden')
     const chevron = header.querySelector('.context-chevron')
+    setContextPref(isHidden)
 
     if (isHidden) {
       content.classList.remove('hidden')
