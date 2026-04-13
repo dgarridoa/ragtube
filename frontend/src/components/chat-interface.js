@@ -193,7 +193,6 @@ export function createChatInterface(apiClient) {
       }
 
       if (!assistantMessage) {
-        // Remove typing indicator and show no results
         typingIndicator.remove()
         const noResultsMessage = createMessage({
           role: 'assistant',
@@ -205,6 +204,7 @@ export function createChatInterface(apiClient) {
       }
     } catch (error) {
       if (error.name === 'AbortError') {
+        // Graceful abort — treat like a clean stop
         typingIndicator.remove()
       } else {
         console.error('Chat error:', error)
@@ -212,8 +212,7 @@ export function createChatInterface(apiClient) {
 
         const errorMessage = createMessage({
           role: 'assistant',
-          content:
-            'I apologize, but I encountered an error while processing your request. Please try again.',
+          content: `Something went wrong: ${error.message || error}. Please try again.`,
           timestamp: new Date(),
           isError: true,
         })
